@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/activity_main"
     android:layout_width="match_parent"
@@ -8,6 +8,7 @@
     tools:context="com.memolease.realmtoy.MainActivity">
 
     <LinearLayout
+        android:id="@+id/search_bar"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_gravity="center_vertical"
@@ -29,33 +30,11 @@
 
     </LinearLayout>
 
-    <TextView
-        android:id="@+id/text1"
+    <android.support.v7.widget.RecyclerView
+        android:layout_below="@+id/search_bar"
+        android:id="@+id/book_recycler"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="Hello World!" />
+        android:layout_height="match_parent">
+    </android.support.v7.widget.RecyclerView>
 
-    <TextView
-        android:id="@+id/text2"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="Hello World!" />
-
-    <TextView
-        android:id="@+id/text3"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="Hello World!" />
-
-    <TextView
-        android:id="@+id/text4"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="Hello World!" />
-
-    <TextView
-        android:id="@+id/text5"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="Hello World!" />
-</LinearLayout>
+</RelativeLayout>

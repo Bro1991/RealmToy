@@ -1,8 +1,11 @@
 package com.memolease.realmtoy;
 
+import android.content.Context;
 import android.os.AsyncTask;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.support.v7.widget.GridLayoutManager;
+import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
@@ -30,23 +33,28 @@ import retrofit2.converter.gson.GsonConverterFactory;
 public class MainActivity extends AppCompatActivity {
     EditText editText;
     Button search_button;
-    TextView text1, text2, text3, text4, text5;
+    //TextView text1, text2, text3, text4, text5;
     Retrofit retrofit;
     BookApiService bookApiService;
+    RecyclerView book_recycler;
+    BookAdapter bookAdapter;
     ArrayList<NaverBook> naverBookArrayList = new ArrayList<>();
+    GridLayoutManager mLayoutManager;
+    Context mContext;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        mContext = this;
 
         editText = (EditText) findViewById(R.id.editText);
         search_button = (Button) findViewById(R.id.search_button);
-        text1 = (TextView) findViewById(R.id.text1);
+/*        text1 = (TextView) findViewById(R.id.text1);
         text2 = (TextView) findViewById(R.id.text2);
         text3 = (TextView) findViewById(R.id.text3);
         text4 = (TextView) findViewById(R.id.text4);
-        text5 = (TextView) findViewById(R.id.text5);
+        text5 = (TextView) findViewById(R.id.text5);*/
 
         OkHttpClient client = new OkHttpClient.Builder()
                 .addInterceptor(new NApiInterceptor())
@@ -60,6 +68,7 @@ public class MainActivity extends AppCompatActivity {
                 .build();
 
         bookApiService = retrofit.create(BookApiService.class);
+        initRecycler();
 
 
         search_button.setOnClickListener(new View.OnClickListener() {
@@ -98,6 +107,27 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
+    private void initRecycler() {
+        book_recycler = (RecyclerView) findViewById(R.id.book_recycler);
+        mLayoutManager = new GridLayoutManager(mContext, 3);
+
+        mLayoutManager.setSpanSizeLookup(new GridLayoutManager.SpanSizeLookup() {
+            @Override
+            public int getSpanSize(int position) {
+                Log.d("booksale", "size position : " + position);
+                if (bookAdapter.isLast(position)) {
+                    int num = position % 3;
+                    Log.d("booksale", "last_check");
+                }
+                return bookAdapter.isLast(position) ? (3 - (position % 3)) : 1;
+            }
+        });
+
+        book_recycler.setLayoutManager(mLayoutManager);
+        bookAdapter = new BookAdapter(mContext, naverBookArrayList);
+        book_recycler.setAdapter(bookAdapter);
+    }
+
     public void getResponse2() {
         String query = editText.getText().toString();
         String target = "book.json";
@@ -127,7 +157,7 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onResponse(Call<ResponseBody> call, retrofit2.Response<ResponseBody> response) {
                 Log.d("찾은 결과", response.toString());
-                text1.setText(response.toString());
+                //text1.setText(response.toString());
             }
 
             @Override
@@ -138,15 +168,15 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void getBook() {
-        if (naverBookArrayList != null) {
+        /*if (naverBookArrayList != null) {
             naverBookArrayList.clear();
-        }
+        }*/
 
         try {
             String query = editText.getText().toString();
             //query = URLEncoder.encode(query, "UTF-8");
             String target = "book.json";
-            Call<Channel> getChannel = bookApiService.getChannel(target, query, 10, 1);
+            Call<Channel> getChannel = bookApiService.getChannel(target, query, 2, 1);
             getChannel.enqueue(new Callback<Channel>() {
                 @Override
                 public void onResponse(Call<Channel> call, retrofit2.Response<Channel> response) {
@@ -156,14 +186,7 @@ public class MainActivity extends AppCompatActivity {
                     for (NaverBook naverBook : naverBooks) {
                         naverBookArrayList.add(naverBook);
                     }
-
-                    if (naverBookArrayList.size() != 0) {
-                        text1.setText(naverBookArrayList.get(0).getTitle());
-                        text2.setText(naverBookArrayList.get(1).getTitle());
-                        text3.setText(naverBookArrayList.get(2).getTitle());
-                        text4.setText(naverBookArrayList.get(3).getTitle());
-                        text5.setText(naverBookArrayList.get(4).getTitle());
-                    }
+                    bookAdapter.notifyDataSetChanged();
                 }
 
                 @Override
@@ -230,7 +253,7 @@ public class MainActivity extends AppCompatActivity {
             br.close();
             System.out.println(response.toString());
             Log.d("찾은 결과", response.toString());
-            text1.setText(response.toString());
+            //text1.setText(response.toString());
         } catch (Exception e) {
             System.out.println(e);
             Log.d("에러", e.toString());
