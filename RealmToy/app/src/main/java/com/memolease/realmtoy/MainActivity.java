@@ -1,16 +1,20 @@
 package com.memolease.realmtoy;
 
 import android.content.Context;
+import android.content.Intent;
 import android.os.AsyncTask;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -41,6 +45,7 @@ public class MainActivity extends AppCompatActivity {
     ArrayList<NaverBook> naverBookArrayList = new ArrayList<>();
     GridLayoutManager mLayoutManager;
     Context mContext;
+    static final int ADD_BOOK = 2004;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -109,7 +114,7 @@ public class MainActivity extends AppCompatActivity {
 
     private void initRecycler() {
         book_recycler = (RecyclerView) findViewById(R.id.book_recycler);
-        mLayoutManager = new GridLayoutManager(mContext, 3);
+        mLayoutManager = new GridLayoutManager(this, 3);
 
         mLayoutManager.setSpanSizeLookup(new GridLayoutManager.SpanSizeLookup() {
             @Override
@@ -119,12 +124,17 @@ public class MainActivity extends AppCompatActivity {
                     int num = position % 3;
                     Log.d("booksale", "last_check");
                 }
-                return bookAdapter.isLast(position) ? (3 - (position % 3)) : 1;
+
+                Log.d("islast(position)", String.valueOf(bookAdapter.isLast(position)? (3 - (position % 3)) : 1));
+                return bookAdapter.isLast(position)? (3 - (position % 3)) : 1;
+
+                //return (3 - position % 3);
             }
         });
 
         book_recycler.setLayoutManager(mLayoutManager);
-        bookAdapter = new BookAdapter(mContext, naverBookArrayList);
+        bookAdapter = new BookAdapter(naverBookArrayList);
+        bookAdapter.mContext = this;
         book_recycler.setAdapter(bookAdapter);
     }
 
@@ -176,16 +186,20 @@ public class MainActivity extends AppCompatActivity {
             String query = editText.getText().toString();
             //query = URLEncoder.encode(query, "UTF-8");
             String target = "book.json";
-            Call<Channel> getChannel = bookApiService.getChannel(target, query, 2, 1);
+            Call<Channel> getChannel = bookApiService.getChannel(target, query, 1, 1);
             getChannel.enqueue(new Callback<Channel>() {
                 @Override
                 public void onResponse(Call<Channel> call, retrofit2.Response<Channel> response) {
+                    int postion = 0;
                     Log.d("받은값", response.body().toString());
                     List<NaverBook> naverBooks = fetchResults(response);
 
                     for (NaverBook naverBook : naverBooks) {
                         naverBookArrayList.add(naverBook);
+                        postion++;
                     }
+                    int lastPosition = naverBookArrayList.size() -1;
+                    bookAdapter.bookSize = lastPosition + postion;
                     bookAdapter.notifyDataSetChanged();
                 }
 
@@ -302,5 +316,35 @@ public class MainActivity extends AppCompatActivity {
             return null;
         }
 
+    }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        getMenuInflater().inflate(R.menu.main_menu, menu);
+        return super.onCreateOptionsMenu(menu);
+    }
+
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        switch (item.getItemId()) {
+            case android.R.id.home:
+                finish();
+                return true;
+            case R.id.add_book:
+                Intent addBook = new Intent(MainActivity.this, SearchBookActivity.class);
+                startActivityForResult(addBook, ADD_BOOK);
+                return true;
+        }
+        return super.onOptionsItemSelected(item);
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+
+        if (requestCode == ADD_BOOK) {
+            Log.d("가져온 정보", "정보를 가져왔어요");
+        }
     }
 }

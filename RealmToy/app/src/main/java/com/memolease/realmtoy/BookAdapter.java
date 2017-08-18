@@ -22,8 +22,7 @@ public class BookAdapter extends RecyclerView.Adapter<BookAdapter.BookViewHolder
     List<NaverBook> naverBookList;
     public int bookSize = -1;
 
-    public BookAdapter(Context mContext, List<NaverBook> naverBookList) {
-        this.mContext = mContext;
+    public BookAdapter(List<NaverBook> naverBookList) {
         this.naverBookList = naverBookList;
     }
 
@@ -33,7 +32,7 @@ public class BookAdapter extends RecyclerView.Adapter<BookAdapter.BookViewHolder
 
     @Override
     public BookViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
-        View rootView = View.inflate(mContext, R.layout.book_item, null);
+        View rootView = View.inflate(parent.getContext(), R.layout.book_item, null);
         BookViewHolder bookViewHolder = new BookViewHolder(rootView);
         return bookViewHolder;
     }
@@ -41,6 +40,11 @@ public class BookAdapter extends RecyclerView.Adapter<BookAdapter.BookViewHolder
     @Override
     public void onBindViewHolder(BookViewHolder holder, int position) {
         NaverBook naverBook = naverBookList.get(position);
+
+        holder.context = mContext;
+        holder.mAdapter = this;
+
+        holder.setAdapter(this);
 
         Glide.with(holder.book_image.getContext())
                 .load(naverBook.getImage())
@@ -55,10 +59,16 @@ public class BookAdapter extends RecyclerView.Adapter<BookAdapter.BookViewHolder
 
     class BookViewHolder extends RecyclerView.ViewHolder {
         ImageView book_image;
+        BookAdapter mAdapter;
+        Context context;
+
         public BookViewHolder(View itemView) {
             super(itemView);
             book_image = (ImageView) itemView.findViewById(R.id.book_image);
         }
+
+        public void setAdapter(BookAdapter adapter) { this.mAdapter = adapter; }
+
     }
 
 

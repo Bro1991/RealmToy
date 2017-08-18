@@ -100,6 +100,13 @@ public class NaverBook {
         return publisher;
     }
 
+    public String getPubdateWithDot() {
+        StringBuilder builder = new StringBuilder(pubdate);
+        builder.insert(4, ". ");
+        builder.insert(8, ". ");
+        return builder.toString();
+    }
+
     public void setPublisher(String publisher) {
         this.publisher = publisher;
     }
