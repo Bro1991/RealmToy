@@ -39,4 +39,9 @@ public interface BookApiService {
                                @Query("display") int display,
                                @Query("start") int start);
 
+    @GET("/v1/search/{target}")
+    Call<ResponseBookSearchsEvent> getResponseBook(@Path("target") String target,
+                             @Query("query") String query,
+                             @Query("display") int display,
+                             @Query("start") int start);
 }

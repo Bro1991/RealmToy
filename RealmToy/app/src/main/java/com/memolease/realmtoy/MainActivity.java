@@ -16,6 +16,10 @@ import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.memolease.realmtoy.util.BusProvider;
+import com.squareup.otto.Bus;
+import com.squareup.otto.Subscribe;
+
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -35,33 +39,35 @@ import retrofit2.Retrofit;
 import retrofit2.converter.gson.GsonConverterFactory;
 
 public class MainActivity extends AppCompatActivity {
-    EditText editText;
-    Button search_button;
+    //EditText editText;
+    //Button search_button;
     //TextView text1, text2, text3, text4, text5;
-    Retrofit retrofit;
-    BookApiService bookApiService;
+    //Retrofit retrofit;
+    //BookApiService bookApiService;
     RecyclerView book_recycler;
     BookAdapter bookAdapter;
     ArrayList<NaverBook> naverBookArrayList = new ArrayList<>();
     GridLayoutManager mLayoutManager;
     Context mContext;
     static final int ADD_BOOK = 2004;
+    int postion = 0;
+    Bus mBus = BusProvider.getInstance();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         mContext = this;
-
-        editText = (EditText) findViewById(R.id.editText);
-        search_button = (Button) findViewById(R.id.search_button);
+        mBus.register(this);
+        //editText = (EditText) findViewById(R.id.editText);
+        //search_button = (Button) findViewById(R.id.search_button);
 /*        text1 = (TextView) findViewById(R.id.text1);
         text2 = (TextView) findViewById(R.id.text2);
         text3 = (TextView) findViewById(R.id.text3);
         text4 = (TextView) findViewById(R.id.text4);
         text5 = (TextView) findViewById(R.id.text5);*/
 
-        OkHttpClient client = new OkHttpClient.Builder()
+/*        OkHttpClient client = new OkHttpClient.Builder()
                 .addInterceptor(new NApiInterceptor())
                 .addInterceptor(new LoggingIntercepter())
                 .build();
@@ -72,16 +78,16 @@ public class MainActivity extends AppCompatActivity {
                 .addConverterFactory(GsonConverterFactory.create())
                 .build();
 
-        bookApiService = retrofit.create(BookApiService.class);
+        bookApiService = retrofit.create(BookApiService.class);*/
         initRecycler();
 
 
-        search_button.setOnClickListener(new View.OnClickListener() {
+/*        search_button.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 getBook();
                 //getResponse();
-/*
+*//*
                 try {
                     String query = editText.getText().toString();
                     //query = URLEncoder.encode(query, "UTF-8");
@@ -105,10 +111,10 @@ public class MainActivity extends AppCompatActivity {
 
                 } catch (Exception e) {
                     Log.d("에러", e.toString());
-                }*/
+                }*//*
 
             }
-        });
+        });*/
 
     }
 
@@ -138,7 +144,7 @@ public class MainActivity extends AppCompatActivity {
         book_recycler.setAdapter(bookAdapter);
     }
 
-    public void getResponse2() {
+/*    public void getResponse2() {
         String query = editText.getText().toString();
         String target = "book.json";
         Call<ResponseBody> body = bookApiService.getBody(target, query, 10, 1);
@@ -153,9 +159,9 @@ public class MainActivity extends AppCompatActivity {
 
             }
         });
-    }
+    }*/
 
-    public void getResponse() {
+/*    public void getResponse() {
         String query = editText.getText().toString();
         //query = URLEncoder.encode(query, "UTF-8");
         //String query = editText.getText().toString();
@@ -175,12 +181,12 @@ public class MainActivity extends AppCompatActivity {
                 Log.d("에러", t.toString());
             }
         });
-    }
+    }*/
 
-    private void getBook() {
-        /*if (naverBookArrayList != null) {
+/*    private void getBook() {
+        *//*if (naverBookArrayList != null) {
             naverBookArrayList.clear();
-        }*/
+        }*//*
 
         try {
             String query = editText.getText().toString();
@@ -190,7 +196,7 @@ public class MainActivity extends AppCompatActivity {
             getChannel.enqueue(new Callback<Channel>() {
                 @Override
                 public void onResponse(Call<Channel> call, retrofit2.Response<Channel> response) {
-                    int postion = 0;
+
                     Log.d("받은값", response.body().toString());
                     List<NaverBook> naverBooks = fetchResults(response);
 
@@ -211,7 +217,7 @@ public class MainActivity extends AppCompatActivity {
         } catch (Exception e) {
             Log.d("에러", e.toString());
         }
-    }
+    }*/
 
     private List<NaverBook> fetchResults(retrofit2.Response<Channel> response) {
         Channel channel = response.body();
@@ -274,49 +280,6 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    private void feed(String search) {
-        new ProcessFacebookTask().execute(search, null, null);
-    }
-
-    //AsyncTask<Params,Progress,Result>
-    private class ProcessFacebookTask extends AsyncTask<String, Void, Void> {
-
-        @Override
-        protected Void doInBackground(String... params) {
-            String clientId = "7tHjBCec_rlzsAmtHJtk";//애플리케이션 클라이언트 아이디값";
-            String clientSecret = "oP96ohTIXH";//애플리케이션 클라이언트 시크릿값";
-            try {
-                String text = URLEncoder.encode("사랑", "UTF-8");
-                String apiURL = "https://openapi.naver.com/v1/search/book_adv.json?query=" + text; // json 결과
-
-                URL url = new URL(apiURL);
-                HttpURLConnection con = (HttpURLConnection) url.openConnection();
-                con.setRequestMethod("GET");
-                con.setRequestProperty("X-Naver-Client-Id", clientId);
-                con.setRequestProperty("X-Naver-Client-Secret", clientSecret);
-                int responseCode = con.getResponseCode();
-                BufferedReader br;
-                if (responseCode == 200) { // 정상 호출
-                    br = new BufferedReader(new InputStreamReader(con.getInputStream()));
-                } else {  // 에러 발생
-                    br = new BufferedReader(new InputStreamReader(con.getErrorStream()));
-                }
-                String inputLine;
-                StringBuffer response = new StringBuffer();
-                while ((inputLine = br.readLine()) != null) {
-                    response.append(inputLine);
-                }
-                br.close();
-                System.out.println(response.toString());
-                Log.d("찾은 결과", response.toString());
-            } catch (Exception e) {
-                System.out.println(e);
-                Log.d("에러", e.toString());
-            }
-            return null;
-        }
-
-    }
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
@@ -333,18 +296,24 @@ public class MainActivity extends AppCompatActivity {
                 return true;
             case R.id.add_book:
                 Intent addBook = new Intent(MainActivity.this, SearchBookActivity.class);
-                startActivityForResult(addBook, ADD_BOOK);
+                startActivity(addBook);
                 return true;
         }
         return super.onOptionsItemSelected(item);
     }
 
-    @Override
-    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        super.onActivityResult(requestCode, resultCode, data);
 
-        if (requestCode == ADD_BOOK) {
-            Log.d("가져온 정보", "정보를 가져왔어요");
-        }
+    @Subscribe
+    public void getBook(NaverBook naverBook) {
+        postion ++;
+        bookAdapter.bookSize = postion;
+        naverBookArrayList.add(naverBook);
+        bookAdapter.notifyDataSetChanged();
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        mBus.unregister(this);
     }
 }

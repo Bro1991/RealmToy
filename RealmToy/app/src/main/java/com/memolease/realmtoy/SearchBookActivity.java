@@ -1,5 +1,6 @@
 package com.memolease.realmtoy;
 
+import android.content.Context;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.LinearLayoutManager;
@@ -9,6 +10,10 @@ import android.view.KeyEvent;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
+
+import com.memolease.realmtoy.util.BusProvider;
+import com.squareup.otto.Bus;
+import com.squareup.otto.Subscribe;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -30,11 +35,14 @@ public class SearchBookActivity extends AppCompatActivity {
     LinearLayoutManager mLinearLayoutManager;
     Boolean isLoading = false;
     int startIndex = 1;
+    Bus mBus = BusProvider.getInstance();
+    public static Context mContext;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_search_book);
+        mContext = this;
         initRetrofit();
         initUI();
         initRecycler();
@@ -57,7 +65,13 @@ public class SearchBookActivity extends AppCompatActivity {
         mSearchButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                searchBook(startIndex);
+
+                SearchBookEvent event = new SearchBookEvent();
+                event.setQuery(editText.getText().toString());
+                event.setStart(startIndex);
+                mBus.post(event);
+
+                //searchBook(startIndex);
                 editText.setEnabled(false);
             }
         });
@@ -78,7 +92,14 @@ public class SearchBookActivity extends AppCompatActivity {
                 super.onScrolled(recyclerView, dx, dy);
                 if( !isLoading && !recyclerView.canScrollVertically(1) ){
                     isLoading = true;
-                    nextSearch(++startIndex);
+
+                    NextSearchBookEvent event = new NextSearchBookEvent();
+                    event.setStart(++startIndex);
+                    event.setQuery(editText.getText().toString());
+                    mBus.post(event);
+
+                    //nextSearch(++startIndex);
+
                 }
             }
         });
@@ -158,10 +179,37 @@ public class SearchBookActivity extends AppCompatActivity {
 
     }
 
+    @Subscribe
+    public void onSuccessFetchBookSearchs(ResponseBookSearchsEvent event){
+        isLoading = false;
+        editText.setEnabled(true);
+
+        if (event.getItems() != null) {
+            searchAdapter.addItems(event.getItems());
+        }
+
+    }
+
     private List<NaverBook> fetchResults(retrofit2.Response<Channel> response) {
         Channel channel = response.body();
         channel.getItems();
         return channel.getItems();
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        mBus.register(this);
+    }
+
+    @Override
+    public void onPause() {
+        super.onPause();
+        mBus.unregister(this);
+    }
+
+    public void finishActivity() {
+        finish();
     }
 
 }

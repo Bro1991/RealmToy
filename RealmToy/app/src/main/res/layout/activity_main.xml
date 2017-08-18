@@ -7,29 +7,6 @@
     android:orientation="vertical"
     tools:context="com.memolease.realmtoy.MainActivity">
 
-    <LinearLayout
-        android:id="@+id/search_bar"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_gravity="center_vertical"
-        android:orientation="horizontal"
-        android:weightSum="10">
-
-        <EditText
-            android:id="@+id/editText"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="8.5" />
-
-        <Button
-            android:id="@+id/search_button"
-            android:layout_width="0dp"
-            android:layout_height="40dp"
-            android:layout_weight="1.5"
-            android:text="Go" />
-
-    </LinearLayout>
-
     <android.support.v7.widget.RecyclerView
         android:layout_below="@+id/search_bar"
         android:id="@+id/book_recycler"

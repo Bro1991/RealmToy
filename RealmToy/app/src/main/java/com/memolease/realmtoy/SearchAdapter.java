@@ -14,9 +14,11 @@ import com.bumptech.glide.load.engine.DiskCacheStrategy;
 import com.bumptech.glide.load.resource.drawable.GlideDrawable;
 import com.bumptech.glide.request.animation.GlideAnimation;
 import com.bumptech.glide.request.target.GlideDrawableImageViewTarget;
+import com.memolease.realmtoy.util.BusProvider;
 
 import org.jsoup.Jsoup;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -74,6 +76,13 @@ public class SearchAdapter extends RecyclerView.Adapter<SearchAdapter.SearchView
         return naverBookList.size();
     }
 
+    public void addItems(ArrayList<NaverBook> newItems) {
+        for (NaverBook item : newItems)
+            naverBookList.add(item);
+        notifyDataSetChanged();
+    }
+
+
     class SearchViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener {
         Context context;
         SearchAdapter searchAdapter;
@@ -98,7 +107,9 @@ public class SearchAdapter extends RecyclerView.Adapter<SearchAdapter.SearchView
 
         @Override
         public void onClick(View v) {
-            Toast.makeText(context, "아이템이 눌렸습니다", Toast.LENGTH_SHORT).show();
+            NaverBook event = naverBookList.get(getAdapterPosition());
+            BusProvider.getInstance().post(event);
+            ((SearchBookActivity)SearchBookActivity.mContext).finish();
         }
     }
 
