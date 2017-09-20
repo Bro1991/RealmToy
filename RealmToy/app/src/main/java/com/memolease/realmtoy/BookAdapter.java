@@ -8,7 +8,10 @@ import android.widget.ImageView;
 
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.load.engine.DiskCacheStrategy;
+import com.bumptech.glide.load.resource.drawable.GlideDrawable;
+import com.bumptech.glide.request.animation.GlideAnimation;
 import com.bumptech.glide.request.target.GlideDrawableImageViewTarget;
+import com.memolease.realmtoy.util.BusProvider;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -26,7 +29,7 @@ public class BookAdapter extends RecyclerView.Adapter<BookAdapter.BookViewHolder
         this.naverBookList = naverBookList;
     }
 
-    public boolean isLast (int position) {
+    public boolean isLast(int position) {
         return this.bookSize == (position + 1);
     }
 
@@ -38,7 +41,7 @@ public class BookAdapter extends RecyclerView.Adapter<BookAdapter.BookViewHolder
     }
 
     @Override
-    public void onBindViewHolder(BookViewHolder holder, int position) {
+    public void onBindViewHolder(final BookViewHolder holder, int position) {
         NaverBook naverBook = naverBookList.get(position);
 
         holder.context = mContext;
@@ -49,7 +52,15 @@ public class BookAdapter extends RecyclerView.Adapter<BookAdapter.BookViewHolder
         Glide.with(holder.book_image.getContext())
                 .load(naverBook.getImage())
                 .diskCacheStrategy(DiskCacheStrategy.RESULT)
-                .into(new GlideDrawableImageViewTarget(holder.book_image));
+                .into(new GlideDrawableImageViewTarget(holder.book_image) {
+                    @Override
+                    public void onResourceReady(GlideDrawable drawable, GlideAnimation anim) {
+                        super.onResourceReady(drawable, null);
+
+                        holder.book_image.setScaleType(ImageView.ScaleType.MATRIX);
+                        holder.book_image.setVisibility(View.VISIBLE);
+                    }
+                });
     }
 
     @Override
@@ -65,11 +76,36 @@ public class BookAdapter extends RecyclerView.Adapter<BookAdapter.BookViewHolder
         public BookViewHolder(View itemView) {
             super(itemView);
             book_image = (ImageView) itemView.findViewById(R.id.book_image);
+            itemView.setOnLongClickListener(new View.OnLongClickListener() {
+                @Override
+                public boolean onLongClick(View v) {
+                    NaverBook naverBook = naverBookList.get(getAdapterPosition());
+                    removeSelectedItem(naverBook.getId());
+                    DeleteBookEvent bookEvent = new DeleteBookEvent();
+                    bookEvent.setId(naverBook.getId());
+                    BusProvider.getInstance().post(bookEvent);
+                    return false;
+                }
+            });
+
+
         }
 
-        public void setAdapter(BookAdapter adapter) { this.mAdapter = adapter; }
+        public void setAdapter(BookAdapter adapter) {
+            this.mAdapter = adapter;
+        }
 
     }
 
+    public void removeSelectedItem(int id) {
+        for (NaverBook naverBook : naverBookList) {
+            if (naverBook.getId() == id) {
+                int position = naverBookList.indexOf(naverBook);
+                naverBookList.remove(position);
+                notifyItemRemoved(position);
+                break;
+            }
+        }
+    }
 
 }

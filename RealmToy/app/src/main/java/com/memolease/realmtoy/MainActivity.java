@@ -1,8 +1,10 @@
 package com.memolease.realmtoy;
 
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.AsyncTask;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.GridLayoutManager;
@@ -16,6 +18,7 @@ import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.memolease.realmtoy.util.BackPressFinishHandler;
 import com.memolease.realmtoy.util.BusProvider;
 import com.squareup.otto.Bus;
 import com.squareup.otto.Subscribe;
@@ -30,6 +33,8 @@ import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.List;
 
+import io.realm.Realm;
+import io.realm.RealmResults;
 import okhttp3.OkHttpClient;
 import okhttp3.Response;
 import okhttp3.ResponseBody;
@@ -52,6 +57,8 @@ public class MainActivity extends AppCompatActivity {
     static final int ADD_BOOK = 2004;
     int postion = 0;
     Bus mBus = BusProvider.getInstance();
+    private Realm realm;
+    private BackPressFinishHandler backPressFinishHandler;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -59,6 +66,8 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
         mContext = this;
         mBus.register(this);
+        realm = Realm.getDefaultInstance();
+        backPressFinishHandler = new BackPressFinishHandler(this);
         //editText = (EditText) findViewById(R.id.editText);
         //search_button = (Button) findViewById(R.id.search_button);
 /*        text1 = (TextView) findViewById(R.id.text1);
@@ -80,6 +89,7 @@ public class MainActivity extends AppCompatActivity {
 
         bookApiService = retrofit.create(BookApiService.class);*/
         initRecycler();
+        initRealm();
 
 
 /*        search_button.setOnClickListener(new View.OnClickListener() {
@@ -133,8 +143,6 @@ public class MainActivity extends AppCompatActivity {
 
                 Log.d("islast(position)", String.valueOf(bookAdapter.isLast(position)? (3 - (position % 3)) : 1));
                 return bookAdapter.isLast(position)? (3 - (position % 3)) : 1;
-
-                //return (3 - position % 3);
             }
         });
 
@@ -144,80 +152,20 @@ public class MainActivity extends AppCompatActivity {
         book_recycler.setAdapter(bookAdapter);
     }
 
-/*    public void getResponse2() {
-        String query = editText.getText().toString();
-        String target = "book.json";
-        Call<ResponseBody> body = bookApiService.getBody(target, query, 10, 1);
-        body.enqueue(new Callback<ResponseBody>() {
-            @Override
-            public void onResponse(Call<ResponseBody> call, retrofit2.Response<ResponseBody> response) {
-
+    private void initRealm() {
+        RealmResults<NaverBook> naverBooks = realm.where(NaverBook.class).findAll();
+        if (naverBooks.size() != 0) {
+            for (NaverBook naverBook : naverBooks) {
+                naverBookArrayList.add(naverBook);
+                postion++;
+                Log.d("position값", String.valueOf(postion));
+                bookAdapter.bookSize = postion;
+                bookAdapter.notifyItemChanged(postion);
             }
-
-            @Override
-            public void onFailure(Call<ResponseBody> call, Throwable t) {
-
-            }
-        });
-    }*/
-
-/*    public void getResponse() {
-        String query = editText.getText().toString();
-        //query = URLEncoder.encode(query, "UTF-8");
-        //String query = editText.getText().toString();
-        //String target = "book_adv.json";
-        String target = "book_adv.json";
-
-        Call<ResponseBody> getResponse = bookApiService.getResponse(target, query, 10, 1);
-        getResponse.enqueue(new Callback<ResponseBody>() {
-            @Override
-            public void onResponse(Call<ResponseBody> call, retrofit2.Response<ResponseBody> response) {
-                Log.d("찾은 결과", response.toString());
-                //text1.setText(response.toString());
-            }
-
-            @Override
-            public void onFailure(Call<ResponseBody> call, Throwable t) {
-                Log.d("에러", t.toString());
-            }
-        });
-    }*/
-
-/*    private void getBook() {
-        *//*if (naverBookArrayList != null) {
+        } else {
             naverBookArrayList.clear();
-        }*//*
-
-        try {
-            String query = editText.getText().toString();
-            //query = URLEncoder.encode(query, "UTF-8");
-            String target = "book.json";
-            Call<Channel> getChannel = bookApiService.getChannel(target, query, 1, 1);
-            getChannel.enqueue(new Callback<Channel>() {
-                @Override
-                public void onResponse(Call<Channel> call, retrofit2.Response<Channel> response) {
-
-                    Log.d("받은값", response.body().toString());
-                    List<NaverBook> naverBooks = fetchResults(response);
-
-                    for (NaverBook naverBook : naverBooks) {
-                        naverBookArrayList.add(naverBook);
-                        postion++;
-                    }
-                    int lastPosition = naverBookArrayList.size() -1;
-                    bookAdapter.bookSize = lastPosition + postion;
-                    bookAdapter.notifyDataSetChanged();
-                }
-
-                @Override
-                public void onFailure(Call<Channel> call, Throwable t) {
-                    Log.d("에러", t.toString());
-                }
-            });
-        } catch (Exception e) {
-            Log.d("에러", e.toString());
         }
-    }*/
+    }
 
     private List<NaverBook> fetchResults(retrofit2.Response<Channel> response) {
         Channel channel = response.body();
@@ -287,6 +235,25 @@ public class MainActivity extends AppCompatActivity {
         return super.onCreateOptionsMenu(menu);
     }
 
+    public void addNewBook() {
+        final CharSequence[] items = { "바코드로 등록", "검색해서 등록", "취소" };
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setTitle("도서 등록");
+        builder.setItems(items, new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int item) {
+                if (items[item].equals("바코드로 등록")) {
+                    gotoBookSearch();
+                } else if (items[item].equals("검색해서 등록")) {
+                    gotoBookSearch();
+                } else if (items[item].equals("취소")) {
+                    dialog.dismiss();
+                }
+            }
+        });
+        builder.show();
+    }
+
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
@@ -295,25 +262,69 @@ public class MainActivity extends AppCompatActivity {
                 finish();
                 return true;
             case R.id.add_book:
-                Intent addBook = new Intent(MainActivity.this, SearchBookActivity.class);
-                startActivity(addBook);
+                addNewBook();
                 return true;
         }
         return super.onOptionsItemSelected(item);
     }
 
+    private void gotoBookSearch() {
+        startActivity(new Intent(this, SearchBookActivity.class));
+    }
+
+    @Override
+    public void onBackPressed() {
+        backPressFinishHandler.onBackPressed();
+    }
 
     @Subscribe
     public void getBook(NaverBook naverBook) {
-        postion ++;
+        postion = naverBookArrayList.size();
+        postion++;
         bookAdapter.bookSize = postion;
-        naverBookArrayList.add(naverBook);
-        bookAdapter.notifyDataSetChanged();
+        addDataToRealm(naverBook);
+        //naverBookArrayList.add(naverBook);
+        //bookAdapter.notifyDataSetChanged();
     }
 
     @Override
     protected void onDestroy() {
         super.onDestroy();
         mBus.unregister(this);
+        realm.close();
+    }
+
+    private void addDataToRealm(final NaverBook naverBook) {
+        //NaverBook getbook = realm.createObject(NaverBook.class);
+        realm.executeTransaction(new Realm.Transaction() {
+            @Override
+            public void execute(Realm realm) {
+                Number currentIdNum = realm.where(NaverBook.class).max("id");
+                int nextId;
+                if(currentIdNum == null) {
+                    nextId = 1;
+                } else {
+                    nextId = currentIdNum.intValue() + 1;
+                }
+                naverBook.setId(nextId);
+                realm.copyToRealm(naverBook);
+            }
+        });
+        naverBookArrayList.add(naverBook);
+        bookAdapter.notifyDataSetChanged();
+    }
+
+    @Subscribe
+    public void removeRealmdata(final DeleteBookEvent deleteBookEvent) {
+        final NaverBook realmResults = realm.where(NaverBook.class).equalTo("id", deleteBookEvent.getId()).findFirst();
+        realm.executeTransaction(new Realm.Transaction() {
+            @Override
+            public void execute(Realm realm) {
+                NaverBook naverBook = realmResults;
+                naverBook.deleteFromRealm();
+            }
+        });
+        bookAdapter.bookSize = naverBookArrayList.size();
+        bookAdapter.notifyDataSetChanged();
     }
 }

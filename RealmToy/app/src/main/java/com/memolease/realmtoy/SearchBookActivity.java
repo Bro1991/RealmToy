@@ -65,7 +65,7 @@ public class SearchBookActivity extends AppCompatActivity {
         mSearchButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-
+                searchAdapter.refresh();
                 SearchBookEvent event = new SearchBookEvent();
                 event.setQuery(editText.getText().toString());
                 event.setStart(startIndex);
@@ -90,7 +90,7 @@ public class SearchBookActivity extends AppCompatActivity {
             @Override
             public void onScrolled(RecyclerView recyclerView, int dx, int dy) {
                 super.onScrolled(recyclerView, dx, dy);
-                if( !isLoading && !recyclerView.canScrollVertically(1) ){
+                if (!isLoading && !recyclerView.canScrollVertically(1)) {
                     isLoading = true;
 
                     NextSearchBookEvent event = new NextSearchBookEvent();
@@ -133,7 +133,7 @@ public class SearchBookActivity extends AppCompatActivity {
 
                 for (NaverBook naverBook : naverBooks) {
                     naverBookArrayList.add(naverBook);
-                   //postion++;
+                    //postion++;
                 }
                 //int lastPosition = naverBookArrayList.size() - 1;
                 //searchAdapter.bookSize = lastPosition + postion;
@@ -152,7 +152,7 @@ public class SearchBookActivity extends AppCompatActivity {
     private void nextSearch(int startIndex) {
         String query = editText.getText().toString();
         String target = "book.json";
-        int start = (startIndex -1) * 10 +1;
+        int start = (startIndex - 1) * 10 + 1;
         Call<Channel> getChannel = bookApiService.getChannel(target, query, 10, start);
         getChannel.enqueue(new Callback<Channel>() {
             @Override
@@ -180,7 +180,7 @@ public class SearchBookActivity extends AppCompatActivity {
     }
 
     @Subscribe
-    public void onSuccessFetchBookSearchs(ResponseBookSearchsEvent event){
+    public void onSuccessFetchBookSearchs(ResponseBookSearchsEvent event) {
         isLoading = false;
         editText.setEnabled(true);
 

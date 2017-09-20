@@ -2,6 +2,7 @@ package com.memolease.realmtoy;
 
 import android.content.Context;
 import android.graphics.Color;
+import android.support.annotation.NonNull;
 import android.support.v7.widget.RecyclerView;
 import android.view.View;
 import android.view.ViewGroup;
@@ -9,6 +10,8 @@ import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.afollestad.materialdialogs.DialogAction;
+import com.afollestad.materialdialogs.MaterialDialog;
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.load.engine.DiskCacheStrategy;
 import com.bumptech.glide.load.resource.drawable.GlideDrawable;
@@ -79,13 +82,21 @@ public class SearchAdapter extends RecyclerView.Adapter<SearchAdapter.SearchView
     public void addItems(ArrayList<NaverBook> newItems) {
         for (NaverBook item : newItems)
             naverBookList.add(item);
-        notifyDataSetChanged();
+    notifyDataSetChanged();
+}
+
+    public void refresh() {
+        if (naverBookList == null)
+            naverBookList = new ArrayList<>();
+        else
+            naverBookList.clear();
     }
 
 
     class SearchViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener {
         Context context;
         SearchAdapter searchAdapter;
+        NaverBook naverBook;
         TextView mTitle;
         ImageView mBookImageView;
         TextView mAuthor;
@@ -107,9 +118,27 @@ public class SearchAdapter extends RecyclerView.Adapter<SearchAdapter.SearchView
 
         @Override
         public void onClick(View v) {
-            NaverBook event = naverBookList.get(getAdapterPosition());
-            BusProvider.getInstance().post(event);
-            ((SearchBookActivity)SearchBookActivity.mContext).finish();
+            //((SearchBookActivity)SearchBookActivity.mContext).finish();
+            naverBook = naverBookList.get(getAdapterPosition());
+
+            BookRegistDialogView dialogView = new BookRegistDialogView(context, naverBook);
+
+            MaterialDialog materialDialog = new MaterialDialog.Builder(context)
+                    .customView(dialogView, false)
+                    .negativeText("취소")
+                    .negativeColorRes(R.color.aqua_color)
+                    .positiveText("등록")
+                    .positiveColorRes(R.color.aqua_color)
+                    .onPositive(new MaterialDialog.SingleButtonCallback() {
+                        @Override
+                        public void onClick(@NonNull MaterialDialog dialog, @NonNull DialogAction which) {
+                            NaverBook event = naverBook;
+                            //NaverBook event = naverBookList.get(getAdapterPosition());
+                            event.setImage(event.getImage().replace("m1", "m5").replace("m80", "m260"));
+                            BusProvider.getInstance().post(event);
+                        }
+                    })
+                    .show();
         }
     }
 
