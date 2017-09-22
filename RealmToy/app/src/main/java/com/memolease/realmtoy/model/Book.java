@@ -1,56 +1,35 @@
-package com.memolease.realmtoy;
+package com.memolease.realmtoy.model;
 
-import com.google.gson.annotations.Expose;
-import com.google.gson.annotations.SerializedName;
 
+import com.memolease.realmtoy.NaverBook;
+
+import java.util.List;
+
+import io.realm.RealmList;
 import io.realm.RealmObject;
+import io.realm.annotations.Ignore;
+import io.realm.annotations.PrimaryKey;
 
 /**
- * Created by bro on 2017-08-17.
+ * Created by bro on 2017-09-21.
  */
 
-public class NaverBook{
+public class Book extends RealmObject {
+    @PrimaryKey
     int id;
-
-    @SerializedName("title")
-    @Expose
     private String title;
-
-    @SerializedName("link")
-    @Expose
     private String link;
-
-    @SerializedName("image")
-    @Expose
     private String image;
-
-    @SerializedName("author")
-    @Expose
     private String author;
-
-    @SerializedName("price")
-    @Expose
     private String price;
-
-    @SerializedName("discount")
-    @Expose
     private String discount;
-
-    @SerializedName("publisher")
-    @Expose
     private String publisher;
-
-    @SerializedName("pubdate")
-    @Expose
     private String pubdate;
-
-    @SerializedName("isbn")
-    @Expose
     private String isbn;
-
-    @SerializedName("description")
-    @Expose
     private String description;
+    int readState;
+
+    public RealmList<Memo> memoList;
 
     public int getId() {
         return id;
@@ -145,5 +124,34 @@ public class NaverBook{
 
     public void setDescription(String description) {
         this.description = description;
+    }
+
+    public RealmList<Memo> getMemoList() {
+        return memoList;
+    }
+
+    public void setMemoList(RealmList<Memo> memoList) {
+        this.memoList = memoList;
+    }
+
+    public int getReadState() {
+        return readState;
+    }
+
+    public void setReadState(int readState) {
+        this.readState = readState;
+    }
+
+    public void setNaverBook(NaverBook naverBook) {
+        this.title = naverBook.getTitle();
+        this.link = naverBook.getLink();
+        this.image = naverBook.getImage();
+        this.author = naverBook.getAuthor();
+        this.discount = naverBook.getDiscount();
+        this.price = naverBook.getPrice();
+        this.publisher = naverBook.getPublisher();
+        this.pubdate = naverBook.getPubdate();
+        this.isbn = naverBook.getIsbn();
+        this.description = naverBook.getDescription();
     }
 }

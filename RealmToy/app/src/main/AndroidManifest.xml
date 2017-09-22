@@ -18,7 +18,9 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity android:name=".SearchBookActivity"></activity>
+        <activity android:name=".SearchBookActivity" />
+        <activity android:name=".activity.BookDetailActivity" />
+        <activity android:name=".activity.MemoEditActivity"></activity>
     </application>
 
 </manifest>

@@ -208,8 +208,4 @@ public class SearchBookActivity extends AppCompatActivity {
         mBus.unregister(this);
     }
 
-    public void finishActivity() {
-        finish();
-    }
-
 }

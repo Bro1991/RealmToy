@@ -1,6 +1,7 @@
 package com.memolease.realmtoy;
 
 import android.content.Context;
+import android.content.Intent;
 import android.support.v7.widget.RecyclerView;
 import android.view.View;
 import android.view.ViewGroup;
@@ -11,9 +12,10 @@ import com.bumptech.glide.load.engine.DiskCacheStrategy;
 import com.bumptech.glide.load.resource.drawable.GlideDrawable;
 import com.bumptech.glide.request.animation.GlideAnimation;
 import com.bumptech.glide.request.target.GlideDrawableImageViewTarget;
+import com.memolease.realmtoy.activity.BookDetailActivity;
+import com.memolease.realmtoy.model.Book;
 import com.memolease.realmtoy.util.BusProvider;
 
-import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -22,11 +24,16 @@ import java.util.List;
 
 public class BookAdapter extends RecyclerView.Adapter<BookAdapter.BookViewHolder> {
     Context mContext;
-    List<NaverBook> naverBookList;
+    //List<NaverBook> naverBookList;
+    List<Book> bookList;
     public int bookSize = -1;
 
-    public BookAdapter(List<NaverBook> naverBookList) {
+    /*public BookAdapter(List<NaverBook> naverBookList) {
         this.naverBookList = naverBookList;
+    }*/
+
+    public BookAdapter(List<Book> BookList) {
+        this.bookList = BookList;
     }
 
     public boolean isLast(int position) {
@@ -42,7 +49,8 @@ public class BookAdapter extends RecyclerView.Adapter<BookAdapter.BookViewHolder
 
     @Override
     public void onBindViewHolder(final BookViewHolder holder, int position) {
-        NaverBook naverBook = naverBookList.get(position);
+        //NaverBook naverBook = naverBookList.get(position);
+        Book book = bookList.get(position);
 
         holder.context = mContext;
         holder.mAdapter = this;
@@ -50,7 +58,7 @@ public class BookAdapter extends RecyclerView.Adapter<BookAdapter.BookViewHolder
         holder.setAdapter(this);
 
         Glide.with(holder.book_image.getContext())
-                .load(naverBook.getImage())
+                .load(book.getImage())
                 .diskCacheStrategy(DiskCacheStrategy.RESULT)
                 .into(new GlideDrawableImageViewTarget(holder.book_image) {
                     @Override
@@ -65,7 +73,8 @@ public class BookAdapter extends RecyclerView.Adapter<BookAdapter.BookViewHolder
 
     @Override
     public int getItemCount() {
-        return naverBookList.size();
+        //return naverBookList.size();
+        return bookList.size();
     }
 
     class BookViewHolder extends RecyclerView.ViewHolder {
@@ -76,10 +85,26 @@ public class BookAdapter extends RecyclerView.Adapter<BookAdapter.BookViewHolder
         public BookViewHolder(View itemView) {
             super(itemView);
             book_image = (ImageView) itemView.findViewById(R.id.book_image);
+
+            itemView.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    Book book = bookList.get(getAdapterPosition());
+                    //BusProvider.getInstance().post(bookList.get(getAdapterPosition()));
+                    Intent detail = new Intent(context, BookDetailActivity.class);
+                    detail.putExtra("id", book.getId());
+                    detail.putExtra("title", book.getTitle());
+                    detail.putExtra("author", book.getAuthor());
+                    detail.putExtra("dedatil", makeBookDescription(book));
+                    detail.putExtra("image", book.getImage());
+                    context.startActivity(detail);
+                }
+            });
+
             itemView.setOnLongClickListener(new View.OnLongClickListener() {
                 @Override
                 public boolean onLongClick(View v) {
-                    NaverBook naverBook = naverBookList.get(getAdapterPosition());
+                    Book naverBook = bookList.get(getAdapterPosition());
                     removeSelectedItem(naverBook.getId());
                     DeleteBookEvent bookEvent = new DeleteBookEvent();
                     bookEvent.setId(naverBook.getId());
@@ -98,14 +123,19 @@ public class BookAdapter extends RecyclerView.Adapter<BookAdapter.BookViewHolder
     }
 
     public void removeSelectedItem(int id) {
-        for (NaverBook naverBook : naverBookList) {
+        for (Book naverBook : bookList) {
             if (naverBook.getId() == id) {
-                int position = naverBookList.indexOf(naverBook);
-                naverBookList.remove(position);
+                int position = bookList.indexOf(naverBook);
+                bookList.remove(position);
                 notifyItemRemoved(position);
                 break;
             }
         }
+    }
+
+    private String makeBookDescription(Book book) {
+        return book.getPublisher() + " / " + book.getPubdateWithDot().replace("-",". ");
+        //return book.getPublisher() + " / " + book.getPubdate().replace("-",". ");
     }
 
 }

@@ -18,6 +18,7 @@ import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.memolease.realmtoy.model.Book;
 import com.memolease.realmtoy.util.BackPressFinishHandler;
 import com.memolease.realmtoy.util.BusProvider;
 import com.squareup.otto.Bus;
@@ -44,14 +45,11 @@ import retrofit2.Retrofit;
 import retrofit2.converter.gson.GsonConverterFactory;
 
 public class MainActivity extends AppCompatActivity {
-    //EditText editText;
-    //Button search_button;
-    //TextView text1, text2, text3, text4, text5;
-    //Retrofit retrofit;
-    //BookApiService bookApiService;
     RecyclerView book_recycler;
     BookAdapter bookAdapter;
     ArrayList<NaverBook> naverBookArrayList = new ArrayList<>();
+    List<Book> bookList = new ArrayList<>();
+
     GridLayoutManager mLayoutManager;
     Context mContext;
     static final int ADD_BOOK = 2004;
@@ -147,23 +145,25 @@ public class MainActivity extends AppCompatActivity {
         });
 
         book_recycler.setLayoutManager(mLayoutManager);
-        bookAdapter = new BookAdapter(naverBookArrayList);
+        //bookAdapter = new BookAdapter(naverBookArrayList);
+        bookAdapter = new BookAdapter(bookList);
         bookAdapter.mContext = this;
         book_recycler.setAdapter(bookAdapter);
     }
 
     private void initRealm() {
-        RealmResults<NaverBook> naverBooks = realm.where(NaverBook.class).findAll();
-        if (naverBooks.size() != 0) {
-            for (NaverBook naverBook : naverBooks) {
-                naverBookArrayList.add(naverBook);
+        RealmResults<Book> books = realm.where(Book.class).findAll();
+        if (books.size() != 0) {
+            for (Book book : books) {
+                bookList.add(book);
                 postion++;
                 Log.d("position값", String.valueOf(postion));
                 bookAdapter.bookSize = postion;
                 bookAdapter.notifyItemChanged(postion);
             }
         } else {
-            naverBookArrayList.clear();
+            //naverBookArrayList.clear();
+            bookList.clear();
         }
     }
 
@@ -279,7 +279,8 @@ public class MainActivity extends AppCompatActivity {
 
     @Subscribe
     public void getBook(NaverBook naverBook) {
-        postion = naverBookArrayList.size();
+        //postion = naverBookArrayList.size();
+        postion = bookList.size();
         postion++;
         bookAdapter.bookSize = postion;
         addDataToRealm(naverBook);
@@ -296,35 +297,43 @@ public class MainActivity extends AppCompatActivity {
 
     private void addDataToRealm(final NaverBook naverBook) {
         //NaverBook getbook = realm.createObject(NaverBook.class);
+        final Book book = new Book();
         realm.executeTransaction(new Realm.Transaction() {
             @Override
             public void execute(Realm realm) {
-                Number currentIdNum = realm.where(NaverBook.class).max("id");
+                Number currentIdNum = realm.where(Book.class).max("id");
                 int nextId;
                 if(currentIdNum == null) {
                     nextId = 1;
                 } else {
                     nextId = currentIdNum.intValue() + 1;
                 }
-                naverBook.setId(nextId);
-                realm.copyToRealm(naverBook);
+                book.setId(nextId);
+                book.setNaverBook(naverBook);
+                Log.d("book모델", book.getTitle() + book.getAuthor() + book.getPublisher());
+                //naverBook.setId(nextId);
+                realm.copyToRealmOrUpdate(book);
             }
         });
-        naverBookArrayList.add(naverBook);
+        bookList.add(book);
+        //naverBookArrayList.add(naverBook);
         bookAdapter.notifyDataSetChanged();
     }
 
     @Subscribe
     public void removeRealmdata(final DeleteBookEvent deleteBookEvent) {
-        final NaverBook realmResults = realm.where(NaverBook.class).equalTo("id", deleteBookEvent.getId()).findFirst();
+        final Book realmResults = realm.where(Book.class).equalTo("id", deleteBookEvent.getId()).findFirst();
         realm.executeTransaction(new Realm.Transaction() {
             @Override
             public void execute(Realm realm) {
-                NaverBook naverBook = realmResults;
-                naverBook.deleteFromRealm();
+                Book realmBook = realmResults;
+                realmBook.deleteFromRealm();
+                /*NaverBook naverBook = realmResults;
+                naverBook.deleteFromRealm();*/
             }
         });
-        bookAdapter.bookSize = naverBookArrayList.size();
+        //bookAdapter.bookSize = naverBookArrayList.size();
+        bookAdapter.bookSize = bookList.size();
         bookAdapter.notifyDataSetChanged();
     }
 }

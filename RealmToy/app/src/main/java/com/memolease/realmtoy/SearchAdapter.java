@@ -135,6 +135,9 @@ public class SearchAdapter extends RecyclerView.Adapter<SearchAdapter.SearchView
                             NaverBook event = naverBook;
                             //NaverBook event = naverBookList.get(getAdapterPosition());
                             event.setImage(event.getImage().replace("m1", "m5").replace("m80", "m260"));
+                            event.setTitle((Jsoup.parse(naverBook.getTitle()).text()));
+                            event.setAuthor(Jsoup.parse(naverBook.getAuthor()).text().replace("|", ", "));
+                            event.setPublisher(Jsoup.parse(naverBook.getPublisher()).text());
                             BusProvider.getInstance().post(event);
                         }
                     })
