@@ -1,6 +1,7 @@
 package com.memolease.realmtoy;
 
 import android.content.Context;
+import android.content.Intent;
 import android.graphics.Color;
 import android.support.v7.widget.RecyclerView;
 import android.view.View;
@@ -8,6 +9,7 @@ import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.TextView;
 
+import com.memolease.realmtoy.activity.MemoEditActivity;
 import com.memolease.realmtoy.model.Memo;
 import com.memolease.realmtoy.util.BusProvider;
 
@@ -82,15 +84,19 @@ public class MemoAdapter extends RecyclerView.Adapter<MemoAdapter.MemoViewHolder
 
         @Override
         public void onClick(View v) {
+            Memo memo = items.get(getAdapterPosition());
             switch (v.getId()) {
                 case R.id.deleteButton :
-                    Memo memo = items.get(getAdapterPosition());
                     deleteMemo deleteMemo = new deleteMemo();
                     deleteMemo.setId(memo.getId());
                     deleteMemo.setPosition(getAdapterPosition());
                     BusProvider.getInstance().post(deleteMemo);
                     break;
                 case R.id.shareButton :
+                    Intent memoIntent = new Intent(context, MemoEditActivity.class);
+                    memoIntent.putExtra("id", memo.getId());
+                    memoIntent.putExtra("position", getAdapterPosition());
+                    context.startActivity(memoIntent);
                     break;
             }
 

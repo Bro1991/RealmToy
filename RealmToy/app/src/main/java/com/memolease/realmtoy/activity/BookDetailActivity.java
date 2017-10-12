@@ -19,6 +19,7 @@ import com.bumptech.glide.load.resource.drawable.GlideDrawable;
 import com.bumptech.glide.request.animation.GlideAnimation;
 import com.bumptech.glide.request.target.GlideDrawableImageViewTarget;
 import com.memolease.realmtoy.BookAdapter;
+import com.memolease.realmtoy.EditMemoEvent;
 import com.memolease.realmtoy.MemoAdapter;
 import com.memolease.realmtoy.R;
 import com.memolease.realmtoy.deleteMemo;
@@ -139,7 +140,9 @@ public class BookDetailActivity extends AppCompatActivity {
         mAddMemoButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                startActivity(new Intent(BookDetailActivity.this, MemoEditActivity.class));
+                Intent addMemo = new Intent(BookDetailActivity.this, MemoEditActivity.class);
+                addMemo.putExtra("isNew", true);
+                startActivity(addMemo);
             }
         });
 
@@ -214,8 +217,17 @@ public class BookDetailActivity extends AppCompatActivity {
 
     }
 
+    @Subscribe
+    public void editMemo(EditMemoEvent editMemoEvent) {
+        //Memo memo = memoList.get(editMemoEvent.getPosition());
+        //memo.setTitle(editMemoEvent.getTitle());
+        //memo.setContent(editMemoEvent.getContent());
+        //memo.setUpdatedAt(editMemoEvent.getUpdatedAt());
+        memoAdapter.notifyItemChanged(editMemoEvent.getPosition());
+    }
+
     private String makeBookDescription(Book book) {
-        return book.getPublisher() + " / " + book.getPubdate().replace("-", ". ");
+        return book.getPublisher() + " / " + book.getPubdateWithDot().replace("-", ". ");
     }
 
     @Override

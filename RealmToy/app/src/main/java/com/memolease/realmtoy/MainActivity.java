@@ -19,6 +19,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.memolease.realmtoy.model.Book;
+import com.memolease.realmtoy.model.Memo;
 import com.memolease.realmtoy.util.BackPressFinishHandler;
 import com.memolease.realmtoy.util.BusProvider;
 import com.squareup.otto.Bus;
@@ -35,6 +36,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import io.realm.Realm;
+import io.realm.RealmList;
 import io.realm.RealmResults;
 import okhttp3.OkHttpClient;
 import okhttp3.Response;
@@ -161,6 +163,11 @@ public class MainActivity extends AppCompatActivity {
                 bookAdapter.bookSize = postion;
                 bookAdapter.notifyItemChanged(postion);
             }
+            RealmResults<Memo> memos = realm.where(Memo.class).equalTo("bookid", 5).findAll();
+            for (int i =0 ; i < memos.size(); i++) {
+                Log.d("메모 숫자", memos.get(i).getContent());
+            }
+
         } else {
             //naverBookArrayList.clear();
             bookList.clear();
@@ -323,11 +330,13 @@ public class MainActivity extends AppCompatActivity {
     @Subscribe
     public void removeRealmdata(final DeleteBookEvent deleteBookEvent) {
         final Book realmResults = realm.where(Book.class).equalTo("id", deleteBookEvent.getId()).findFirst();
+        final RealmResults<Memo> memoRealmResults = realm.where(Memo.class).equalTo("bookid", deleteBookEvent.getId()).findAll();
         realm.executeTransaction(new Realm.Transaction() {
             @Override
             public void execute(Realm realm) {
                 Book realmBook = realmResults;
                 realmBook.deleteFromRealm();
+                memoRealmResults.deleteAllFromRealm();
                 /*NaverBook naverBook = realmResults;
                 naverBook.deleteFromRealm();*/
             }
