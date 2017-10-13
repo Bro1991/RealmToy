@@ -16,10 +16,11 @@ import io.realm.annotations.PrimaryKey;
 
 public class Book extends RealmObject {
     @PrimaryKey
-    int id;
+    private int id;
     private String title;
     private String link;
     private String image;
+
     private String author;
     private String price;
     private String discount;
