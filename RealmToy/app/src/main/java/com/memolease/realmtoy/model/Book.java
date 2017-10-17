@@ -32,6 +32,10 @@ public class Book extends RealmObject {
     private String description;
     int readState;
 
+    private String image_path;
+
+    private byte[] bytes;
+
     public RealmList<Memo> memoList;
 
     public int getId() {
@@ -151,6 +155,22 @@ public class Book extends RealmObject {
 
     public void setReadState(int readState) {
         this.readState = readState;
+    }
+
+    public byte[] getBytes() {
+        return bytes;
+    }
+
+    public void setBytes(byte[] bytes) {
+        this.bytes = bytes;
+    }
+
+    public String getImage_path() {
+        return image_path;
+    }
+
+    public void setImage_path(String image_path) {
+        this.image_path = image_path;
     }
 
     public void setNaverBook(NaverBook naverBook) {

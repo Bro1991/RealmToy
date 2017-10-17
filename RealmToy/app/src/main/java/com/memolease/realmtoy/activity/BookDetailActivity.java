@@ -2,6 +2,7 @@ package com.memolease.realmtoy.activity;
 
 import android.content.Intent;
 import android.graphics.Color;
+import android.os.Environment;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.GridLayoutManager;
@@ -29,6 +30,7 @@ import com.memolease.realmtoy.util.BusProvider;
 import com.squareup.otto.Bus;
 import com.squareup.otto.Subscribe;
 
+import java.io.File;
 import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.List;
@@ -43,6 +45,7 @@ public class BookDetailActivity extends AppCompatActivity {
     TextView mTitleParse;
     TextView mAuthorView;
     TextView mDescriptionView;
+    TextView textView4;
     Button mAddMemoButton;
     RadioGroup mBookStateGroup;
     Book mBook;
@@ -107,9 +110,10 @@ public class BookDetailActivity extends AppCompatActivity {
                 mTitleView.setText(chunks[0]);
             }
         }
+        textView4.setText(mBook.getImage_path());
         mAuthorView.setText(mBook.getAuthor());
         mDescriptionView.setText(makeBookDescription(mBook));
-        Glide.with(mBookImageView.getContext())
+/*        Glide.with(mBookImageView.getContext())
                 .load(mBook.getImage())
                 .into(new GlideDrawableImageViewTarget(mBookImageView) {
                     @Override
@@ -117,7 +121,14 @@ public class BookDetailActivity extends AppCompatActivity {
                         super.onResourceReady(drawable, null);
                         mBookImageView.setScaleType(ImageView.ScaleType.MATRIX);
                     }
-                });
+                });*/
+
+        File file = new File(getFilesDir().getPath() + mBook.getImage_path());
+        Log.d("파일경로", file.getPath());
+        //File file = new File(mBook.getImage_path());
+        Glide.with(mBookImageView.getContext())
+                .load(file)
+                .into(mBookImageView);
     }
 
 
@@ -133,6 +144,8 @@ public class BookDetailActivity extends AppCompatActivity {
 
         mDescriptionView = (TextView) findViewById(R.id.bookDescription);
         mDescriptionView.setTextColor(Color.parseColor("#555555"));
+
+        textView4 = (TextView) findViewById(R.id.textView4);
 
         mBookImageView = (ImageView) findViewById(R.id.imageView);
         mAddMemoButton = (Button) findViewById(R.id.addMemoButton);

@@ -3,6 +3,7 @@ package com.memolease.realmtoy;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.media.Image;
 import android.os.AsyncTask;
 import android.os.Environment;
 import android.support.v4.widget.DrawerLayout;
@@ -22,8 +23,13 @@ import com.memolease.realmtoy.model.Memo;
 import com.memolease.realmtoy.util.BackPressFinishHandler;
 import com.memolease.realmtoy.util.BusProvider;
 import com.memolease.realmtoy.util.ImageDownload;
+import com.memolease.realmtoy.util.MainThreadBus;
 import com.squareup.otto.Bus;
 import com.squareup.otto.Subscribe;
+
+import org.greenrobot.eventbus.EventBus;
+import org.greenrobot.eventbus.EventBusBuilder;
+import org.greenrobot.eventbus.ThreadMode;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -54,6 +60,9 @@ public class MainActivity extends AppCompatActivity {
 
     GridLayoutManager mLayoutManager;
     Context mContext;
+    MainThreadBus bus = new MainThreadBus();
+
+    private final String SAVE_FOLDER = "/RealmToy_Backup";
 
     private File path;
     private File outputFile;
@@ -66,6 +75,7 @@ public class MainActivity extends AppCompatActivity {
     Bus mBus = BusProvider.getInstance();
     private Realm realm;
     private BackPressFinishHandler backPressFinishHandler;
+    byte[] getbytes;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -73,6 +83,9 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
         mContext = this;
         mBus.register(this);
+        bus.register(this);
+
+        EventBus.getDefault().register(this);
 
 /*        mLibraryListView = (StickyListHeadersListView) findViewById(R.id.drawer_list);
         mLibraryListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
@@ -380,6 +393,8 @@ public class MainActivity extends AppCompatActivity {
     protected void onDestroy() {
         super.onDestroy();
         mBus.unregister(this);
+        bus.unregister(this);
+        EventBus.getDefault().unregister(this);
         realm.close();
     }
 
@@ -393,7 +408,6 @@ public class MainActivity extends AppCompatActivity {
         }
 
         savefolder(naverBook.getImage(), FileName);
-
 
         final Book book = new Book();
         realm.executeTransaction(new Realm.Transaction() {
@@ -417,6 +431,46 @@ public class MainActivity extends AppCompatActivity {
         bookAdapter.notifyDataSetChanged();
     }
 
+    @Subscribe
+    public void getimagess(final AddBookImageEvent addBookImageEvent) {
+        Log.d("북이미지 이벤트버스로 보냄", "책 이미지파일을 받았다");
+        //book.setBytes(addBookImageEvent.getBytes());
+        realm.executeTransaction(new Realm.Transaction() {
+            @Override
+            public void execute(Realm realm) {
+                Book realmResults = realm.where(Book.class).equalTo("isbn", addBookImageEvent.getIsbn()).findFirst();
+                realmResults.setBytes(addBookImageEvent.getBytes());
+                realm.copyToRealmOrUpdate(realmResults);
+                Log.d("북 이미지 file", "file Realm 저장성공");
+            }
+        });
+
+    }
+
+    @org.greenrobot.eventbus.Subscribe(threadMode = ThreadMode.ASYNC)
+    public void getImage(AddBookImageEvent addBookImageEvent) {
+        Log.d("북이미지 이벤트", "책 이미지파일을 받았다");
+        mBus.post(addBookImageEvent);
+/*        Book realmResults = realm.where(Book.class).equalTo("isbn", addBookImageEvent.getIsbn()).findFirst();
+        Book book = new Book();
+
+        if (realmResults != null) {
+            book = realm.where(Book.class).equalTo("isbn", addBookImageEvent.getIsbn()).findFirst();
+        } else {
+            book = realm.where(Book.class).equalTo("isbn13", addBookImageEvent.getIsbn()).findFirst();
+        }
+
+        final Book finalBook = book;
+        book.setBytes(addBookImageEvent.getBytes());
+        realm.executeTransaction(new Realm.Transaction() {
+            @Override
+            public void execute(Realm realm) {
+                realm.copyToRealmOrUpdate(finalBook);
+                Log.d("북 이미지 file", "file Realm 저장성공");
+            }
+        });*/
+
+    }
 
     @Subscribe
     public void removeRealmdata(final DeleteBookEvent deleteBookEvent) {
@@ -443,93 +497,42 @@ public class MainActivity extends AppCompatActivity {
     }
 
 
-    public class ImageDownloads extends AsyncTask<String, Void, Void> {
+    public class ImageDownloads extends AsyncTask<String, Void, AddBookImageEvent> {
+        String filename;
 
         @Override
-        protected Void doInBackground(String... strings) {
-    /*    //다운로드 경로를 지정
-        Log.d("다운로드 경로 지정", "지정하자");
-        path = new File(mContext.getFilesDir(), "RealmToy");
-        Log.d("다운로드 경로 지정", "지정성공");
-        //상위 디렉토리가 존재하지 않을 경우 생성
-        if (!path.exists()) {
-            Log.d("경로가 없다", "경로만들기");
-            path.mkdirs();
-            Log.d("경로생성", "성공");
-        }
-        //웹 서버 쪽 파일이 있는 경로
-        String fileUrl = DownloadURL;
-
-        try {
-            URL imgUrl = new URL(fileUrl);
-            //서버와 접속하는 클라이언트 객체 생성
-            HttpURLConnection conn = (HttpURLConnection) imgUrl.openConnection();
-
-            int len = conn.getContentLength();
-            byte[] tmpByte = new byte[len];
-
-            //입력 스트림을 구한다
-            InputStream is = conn.getInputStream();
-            File outputFile = new File(path, fileName);
-            //파일 저장 스트림 생성
-            //FileOutputStream fos = new FileOutputStream(outputFile);
-            FileOutputStream fileOutputStream = new FileOutputStream(outputFile);
-
-            //입력 스트림을 파일로 저장
-            byte[] buf = new byte[1024];
-            int count;
-            while ((count = is.read(buf)) > 0) {
-                fileOutputStream.write(buf, 0, count);
-            }
-            // 접속 해제
-            conn.disconnect();
-            //fileOutputStream.write(FileName.getBytes());
-            fileOutputStream.close();
-            Log.d("파일저장", "성공");
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        return null;*/
-
-
+        protected AddBookImageEvent doInBackground(String... strings) {
             //다운로드 경로를 지정
-            //String savePath2 = Environment.getRootDirectory().getAbsolutePath();
-            Log.d("다운로드 경로 지정", "지정하자");
-            //File dir = new File(savePath2);
-            File file = new File(mContext.getFilesDir(), "REALMTOY");
-            File files = new File(Environment.getRootDirectory(), "realmstoyss");
+            String savePath = Environment.getExternalStorageDirectory().getAbsolutePath() + SAVE_FOLDER;
+            String sds = getExternalFilesDir(DOWNLOAD_SERVICE).getPath();
+
+            File exdir = new File(sds);
+            File dir = new File(savePath);
             Log.d("다운로드 경로 지정", "지정성공");
 
-            if (!files.exists()) {
-                files.mkdirs();
-            }
+            Log.d("폴도경로", exdir.getPath());
 
             //상위 디렉토리가 존재하지 않을 경우 생성
-            /*if (!dir.exists()) {
+            if (!dir.exists()) {
                 Log.d("경로가 없다", "경로만들기");
                 dir.mkdirs();
-                Log.d("경로생성", "성공");
-            }*/
-
-            if (!file.exists()) {
-                Log.d("경로가 없다!", "경로만들기!!!");
-                file.mkdirs();
-                Log.d("경로생성!!!!", "성공!!!!");
             }
 
-            Log.d("경로찾기", file.getPath());
-            Log.d("경로찾기 절대경로", file.getAbsolutePath());
+            if (!exdir.exists()) {
+                Log.d("경로가 없다", "경로만들기");
+                exdir.mkdirs();
+            }
 
-            Log.d("경로찾기22", files.getPath());
 
-            String savePath = file.getPath();
 
             //웹 서버 쪽 파일이 있는 경로
             String fileUrl = strings[0];
-            String filename = strings[1];
+            //받아온 filename = book_isbn
+            filename = strings[1];
 
-            String localPath = savePath + "/" + filename + ".png";
-
+            //저장되는 파일의 경로 값
+            //String localPath = savePath + "/" + filename + ".png";
+            String localPath = sds + "/" + filename + ".png";
 
             try {
                 URL imgUrl = new URL(fileUrl);
@@ -541,56 +544,57 @@ public class MainActivity extends AppCompatActivity {
 
                 //입력 스트림을 구한다
                 InputStream is = conn.getInputStream();
-                File file2 = new File(localPath);
-                file2.createNewFile();
-                FileOutputStream fos2 = new FileOutputStream(file2);
+                File file = new File(localPath);
+
+                //파일이 생성이 안 될수도 있어서 생성시키는 코드
+                file.createNewFile();
 
 
+                String localPaths = filename + ".png";
+                //파일 저장 스트림 생성
+                FileOutputStream fileOutputStream = new FileOutputStream(file);
                 FileOutputStream fos = openFileOutput(filename + ".png", Context.MODE_PRIVATE);
-                //Log.d("저장경로2", localPath);
+                FileInputStream ins = openFileInput("/" + filename + ".png");
+                File file1 = new File(getFilesDir().getPath() + localPaths);
+                //FileOutputStream fos = openFileOutput(filename + ".png", Context.MODE_PRIVATE);
 
+                //AddBookImageEvent event = new AddBookImageEvent(filename, tmpByte);
+                //AddBookImageEvent event = new AddBookImageEvent(filename, file.getPath());
+                AddBookImageEvent event = new AddBookImageEvent(filename, file1.getPath());
                 //입력 스트림을 파일로 저장
-/*            byte[] buf = new byte[1024];
-            int count;
-            while ((count = is.read(buf)) > 0) {
-                fileOutputStream.write(buf, 0, count);
-            }
-            // 접속 해제
-            conn.disconnect();
-            //fileOutputStream.write(FileName.getBytes());
-            fileOutputStream.close();*/
-                //입력 스트림을 파일로 저장
-
-            /*int read;
-                for (;;) {
-                    read = is.read(tmpByte);
-                    if (read <= 0) {
-                        break;
-                    }
-                    fos.write(tmpByte, 0, read); //file 생성
-                }*/
-
                 byte[] buf = new byte[1024];
                 int count;
+
                 while ((count = is.read(buf)) > 0) {
+                    //file 생성 및 폴더에 넣기
+                    fileOutputStream.write(buf, 0, count);
                     fos.write(buf, 0, count);
-                    fos2.write(buf, 0, count);
                 }
                 is.close();
                 fos.close();
-                fos2.close();
+                fileOutputStream.close();
                 conn.disconnect();
                 Log.d("파일저장", "성공");
-
-                File file1[] = files.listFiles();
-
-                Log.d("1", file1[0].getName());
-
+                return event;
             } catch (IOException e) {
                 e.printStackTrace();
+                return null;
             }
-            return null;
         }
 
+        @Override
+        protected void onPostExecute(final AddBookImageEvent event) {
+            super.onPostExecute(event);
+            realm.executeTransaction(new Realm.Transaction() {
+                @Override
+                public void execute(Realm realm) {
+                    Book realmResults = realm.where(Book.class).equalTo("isbn", event.getIsbn()).findFirst();
+                    //realmResults.setBytes(event.getBytes());
+                    realmResults.setImage_path(event.getImagePath());
+                    realm.copyToRealmOrUpdate(realmResults);
+                    Log.d("북 이미지 file", "file Realm 저장성공");
+                }
+            });
+        }
     }
 }
