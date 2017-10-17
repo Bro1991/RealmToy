@@ -3,6 +3,7 @@ package com.memolease.realmtoy.model;
 
 import com.memolease.realmtoy.NaverBook;
 
+import java.io.File;
 import java.util.List;
 
 import io.realm.RealmList;
@@ -27,6 +28,7 @@ public class Book extends RealmObject {
     private String publisher;
     private String pubdate;
     private String isbn;
+    private String isbn13;
     private String description;
     int readState;
 
@@ -117,6 +119,14 @@ public class Book extends RealmObject {
 
     public void setIsbn(String isbn) {
         this.isbn = isbn;
+    }
+
+    public String getIsbn13() {
+        return isbn13;
+    }
+
+    public void setIsbn13(String isbn13) {
+        this.isbn13 = isbn13;
     }
 
     public String getDescription() {

@@ -4,6 +4,7 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.AsyncTask;
+import android.os.Environment;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AlertDialog;
@@ -15,21 +16,22 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
-import android.widget.AdapterView;
-import android.widget.Button;
-import android.widget.EditText;
-import android.widget.TextView;
-import android.widget.Toast;
 
 import com.memolease.realmtoy.model.Book;
 import com.memolease.realmtoy.model.Memo;
 import com.memolease.realmtoy.util.BackPressFinishHandler;
 import com.memolease.realmtoy.util.BusProvider;
+import com.memolease.realmtoy.util.ImageDownload;
 import com.squareup.otto.Bus;
 import com.squareup.otto.Subscribe;
 
 import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
@@ -39,16 +41,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 import io.realm.Realm;
-import io.realm.RealmList;
 import io.realm.RealmResults;
-import okhttp3.OkHttpClient;
-import okhttp3.Response;
-import okhttp3.ResponseBody;
-import retrofit2.Call;
-import retrofit2.Callback;
-import retrofit2.Retrofit;
-import retrofit2.converter.gson.GsonConverterFactory;
-import se.emilsjolander.stickylistheaders.StickyListHeadersListView;
+
 
 public class MainActivity extends AppCompatActivity {
     RecyclerView book_recycler;
@@ -61,7 +55,11 @@ public class MainActivity extends AppCompatActivity {
     GridLayoutManager mLayoutManager;
     Context mContext;
 
-    StickyListHeadersListView mLibraryListView;
+    private File path;
+    private File outputFile;
+
+
+    //StickyListHeadersListView mLibraryListView;
 
     static final int ADD_BOOK = 2004;
     int postion = 0;
@@ -76,13 +74,13 @@ public class MainActivity extends AppCompatActivity {
         mContext = this;
         mBus.register(this);
 
-        mLibraryListView = (StickyListHeadersListView) findViewById(R.id.drawer_list);
+/*        mLibraryListView = (StickyListHeadersListView) findViewById(R.id.drawer_list);
         mLibraryListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
 
             }
-        });
+        });*/
 
         realm = Realm.getDefaultInstance();
         backPressFinishHandler = new BackPressFinishHandler(this);
@@ -108,6 +106,13 @@ public class MainActivity extends AppCompatActivity {
         bookApiService = retrofit.create(BookApiService.class);*/
         initRecycler();
         initRealm();
+
+        File files[] = getFilesDir().listFiles();
+        if (files != null) {
+            for (int i = 0; i < files.length; i++) {
+                Log.d("파일리스트", files[i].getName().toString());
+            }
+        }
 
 
 /*        search_button.setOnClickListener(new View.OnClickListener() {
@@ -146,15 +151,25 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
+    public File getAlbumStorageDir(Context context, String albumName) {
+        // Get the directory for the app's private pictures directory.
+        File file = new File(context.getExternalFilesDir(
+                Environment.DIRECTORY_PICTURES), albumName);
+        if (!file.mkdirs()) {
+            Log.e("경고", "Directory not created");
+        }
+        return file;
+    }
+
+
+
     private void drawerLayoutInit() {
-        mDrawerLayout = (DrawerLayout)findViewById(R.id.drawer_layout);
+        mDrawerLayout = (DrawerLayout) findViewById(R.id.drawer_layout);
         mDrawerToggle = new ActionBarDrawerToggle(this, mDrawerLayout, R.string.crop__done, R.string.crop__cancel) {
             @Override
             public void onDrawerOpened(View drawerView) {
                 super.onDrawerOpened(drawerView);
                 //onlyDismissMenu();
-
-
                 //mBus.post(event);
             }
 
@@ -180,8 +195,8 @@ public class MainActivity extends AppCompatActivity {
                     Log.d("booksale", "last_check");
                 }
 
-                Log.d("islast(position)", String.valueOf(bookAdapter.isLast(position)? (3 - (position % 3)) : 1));
-                return bookAdapter.isLast(position)? (3 - (position % 3)) : 1;
+                Log.d("islast(position)", String.valueOf(bookAdapter.isLast(position) ? (3 - (position % 3)) : 1));
+                return bookAdapter.isLast(position) ? (3 - (position % 3)) : 1;
             }
         });
 
@@ -203,12 +218,11 @@ public class MainActivity extends AppCompatActivity {
                 bookAdapter.notifyItemChanged(postion);
             }
             RealmResults<Memo> memos = realm.where(Memo.class).equalTo("bookid", 5).findAll();
-            for (int i =0 ; i < memos.size(); i++) {
+            for (int i = 0; i < memos.size(); i++) {
                 Log.d("메모 숫자", memos.get(i).getContent());
             }
 
         } else {
-            //naverBookArrayList.clear();
             bookList.clear();
         }
     }
@@ -282,7 +296,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void addNewBook() {
-        final CharSequence[] items = { "바코드로 등록", "검색해서 등록", "취소" };
+        final CharSequence[] items = {"바코드로 등록", "검색해서 등록", "취소"};
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
         builder.setTitle("도서 등록");
         builder.setItems(items, new DialogInterface.OnClickListener() {
@@ -334,6 +348,34 @@ public class MainActivity extends AppCompatActivity {
         //bookAdapter.notifyDataSetChanged();
     }
 
+    public byte[] readFile(String a_sParentPath, String a_sFileName) {
+        byte[] bArData = null;
+        if (a_sParentPath != null && a_sParentPath.length() > 0) {
+            File oDatabFolder = new File(a_sParentPath);
+            if (oDatabFolder != null && oDatabFolder.exists() == true && oDatabFolder.isDirectory() == true) {
+                String sFile = a_sParentPath + a_sFileName;
+
+                try {
+                    FileInputStream oInputStream = new FileInputStream(sFile);
+                    int nCount = oInputStream.available();
+                    if (nCount > 0) {
+                        bArData = new byte[nCount];
+                        oInputStream.read(bArData);
+                    }
+
+                    if (oInputStream != null) {
+                        oInputStream.close();
+                    }
+                } catch (FileNotFoundException e) {
+                    e.printStackTrace();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+        return bArData;
+    }
+
     @Override
     protected void onDestroy() {
         super.onDestroy();
@@ -341,15 +383,25 @@ public class MainActivity extends AppCompatActivity {
         realm.close();
     }
 
-    private void addDataToRealm(final NaverBook naverBook) {
+    public void addDataToRealm(final NaverBook naverBook) {
         //NaverBook getbook = realm.createObject(NaverBook.class);
+        String FileName = "";
+        if (naverBook.getIsbn() != null) {
+            FileName = naverBook.getIsbn();
+        } else {
+            FileName = naverBook.getIsbn13();
+        }
+
+        savefolder(naverBook.getImage(), FileName);
+
+
         final Book book = new Book();
         realm.executeTransaction(new Realm.Transaction() {
             @Override
             public void execute(Realm realm) {
                 Number currentIdNum = realm.where(Book.class).max("id");
                 int nextId;
-                if(currentIdNum == null) {
+                if (currentIdNum == null) {
                     nextId = 1;
                 } else {
                     nextId = currentIdNum.intValue() + 1;
@@ -357,7 +409,6 @@ public class MainActivity extends AppCompatActivity {
                 book.setId(nextId);
                 book.setNaverBook(naverBook);
                 Log.d("book모델", book.getTitle() + book.getAuthor() + book.getPublisher());
-                //naverBook.setId(nextId);
                 realm.copyToRealmOrUpdate(book);
             }
         });
@@ -365,6 +416,7 @@ public class MainActivity extends AppCompatActivity {
         //naverBookArrayList.add(naverBook);
         bookAdapter.notifyDataSetChanged();
     }
+
 
     @Subscribe
     public void removeRealmdata(final DeleteBookEvent deleteBookEvent) {
@@ -383,5 +435,162 @@ public class MainActivity extends AppCompatActivity {
         //bookAdapter.bookSize = naverBookArrayList.size();
         bookAdapter.bookSize = bookList.size();
         bookAdapter.notifyDataSetChanged();
+    }
+
+    private void savefolder(String uriString, String filename) {
+        ImageDownloads imageDownloads = new ImageDownloads();
+        imageDownloads.execute(uriString, filename);
+    }
+
+
+    public class ImageDownloads extends AsyncTask<String, Void, Void> {
+
+        @Override
+        protected Void doInBackground(String... strings) {
+    /*    //다운로드 경로를 지정
+        Log.d("다운로드 경로 지정", "지정하자");
+        path = new File(mContext.getFilesDir(), "RealmToy");
+        Log.d("다운로드 경로 지정", "지정성공");
+        //상위 디렉토리가 존재하지 않을 경우 생성
+        if (!path.exists()) {
+            Log.d("경로가 없다", "경로만들기");
+            path.mkdirs();
+            Log.d("경로생성", "성공");
+        }
+        //웹 서버 쪽 파일이 있는 경로
+        String fileUrl = DownloadURL;
+
+        try {
+            URL imgUrl = new URL(fileUrl);
+            //서버와 접속하는 클라이언트 객체 생성
+            HttpURLConnection conn = (HttpURLConnection) imgUrl.openConnection();
+
+            int len = conn.getContentLength();
+            byte[] tmpByte = new byte[len];
+
+            //입력 스트림을 구한다
+            InputStream is = conn.getInputStream();
+            File outputFile = new File(path, fileName);
+            //파일 저장 스트림 생성
+            //FileOutputStream fos = new FileOutputStream(outputFile);
+            FileOutputStream fileOutputStream = new FileOutputStream(outputFile);
+
+            //입력 스트림을 파일로 저장
+            byte[] buf = new byte[1024];
+            int count;
+            while ((count = is.read(buf)) > 0) {
+                fileOutputStream.write(buf, 0, count);
+            }
+            // 접속 해제
+            conn.disconnect();
+            //fileOutputStream.write(FileName.getBytes());
+            fileOutputStream.close();
+            Log.d("파일저장", "성공");
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return null;*/
+
+
+            //다운로드 경로를 지정
+            //String savePath2 = Environment.getRootDirectory().getAbsolutePath();
+            Log.d("다운로드 경로 지정", "지정하자");
+            //File dir = new File(savePath2);
+            File file = new File(mContext.getFilesDir(), "REALMTOY");
+            File files = new File(Environment.getRootDirectory(), "realmstoyss");
+            Log.d("다운로드 경로 지정", "지정성공");
+
+            if (!files.exists()) {
+                files.mkdirs();
+            }
+
+            //상위 디렉토리가 존재하지 않을 경우 생성
+            /*if (!dir.exists()) {
+                Log.d("경로가 없다", "경로만들기");
+                dir.mkdirs();
+                Log.d("경로생성", "성공");
+            }*/
+
+            if (!file.exists()) {
+                Log.d("경로가 없다!", "경로만들기!!!");
+                file.mkdirs();
+                Log.d("경로생성!!!!", "성공!!!!");
+            }
+
+            Log.d("경로찾기", file.getPath());
+            Log.d("경로찾기 절대경로", file.getAbsolutePath());
+
+            Log.d("경로찾기22", files.getPath());
+
+            String savePath = file.getPath();
+
+            //웹 서버 쪽 파일이 있는 경로
+            String fileUrl = strings[0];
+            String filename = strings[1];
+
+            String localPath = savePath + "/" + filename + ".png";
+
+
+            try {
+                URL imgUrl = new URL(fileUrl);
+                //서버와 접속하는 클라이언트 객체 생성
+                HttpURLConnection conn = (HttpURLConnection) imgUrl.openConnection();
+
+                int len = conn.getContentLength();
+                byte[] tmpByte = new byte[len];
+
+                //입력 스트림을 구한다
+                InputStream is = conn.getInputStream();
+                File file2 = new File(localPath);
+                file2.createNewFile();
+                FileOutputStream fos2 = new FileOutputStream(file2);
+
+
+                FileOutputStream fos = openFileOutput(filename + ".png", Context.MODE_PRIVATE);
+                //Log.d("저장경로2", localPath);
+
+                //입력 스트림을 파일로 저장
+/*            byte[] buf = new byte[1024];
+            int count;
+            while ((count = is.read(buf)) > 0) {
+                fileOutputStream.write(buf, 0, count);
+            }
+            // 접속 해제
+            conn.disconnect();
+            //fileOutputStream.write(FileName.getBytes());
+            fileOutputStream.close();*/
+                //입력 스트림을 파일로 저장
+
+            /*int read;
+                for (;;) {
+                    read = is.read(tmpByte);
+                    if (read <= 0) {
+                        break;
+                    }
+                    fos.write(tmpByte, 0, read); //file 생성
+                }*/
+
+                byte[] buf = new byte[1024];
+                int count;
+                while ((count = is.read(buf)) > 0) {
+                    fos.write(buf, 0, count);
+                    fos2.write(buf, 0, count);
+                }
+                is.close();
+                fos.close();
+                fos2.close();
+                conn.disconnect();
+                Log.d("파일저장", "성공");
+
+                File file1[] = files.listFiles();
+
+                Log.d("1", file1[0].getName());
+
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            return null;
+        }
+
     }
 }

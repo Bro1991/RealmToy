@@ -48,6 +48,8 @@ public class NaverBook{
     @Expose
     private String isbn;
 
+    private String isbn13;
+
     @SerializedName("description")
     @Expose
     private String description;
@@ -137,6 +139,14 @@ public class NaverBook{
 
     public void setIsbn(String isbn) {
         this.isbn = isbn;
+    }
+
+    public String getIsbn13() {
+        return isbn13;
+    }
+
+    public void setIsbn13(String isbn13) {
+        this.isbn13 = isbn13;
     }
 
     public String getDescription() {

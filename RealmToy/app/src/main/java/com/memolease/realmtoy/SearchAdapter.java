@@ -4,6 +4,7 @@ import android.content.Context;
 import android.graphics.Color;
 import android.support.annotation.NonNull;
 import android.support.v7.widget.RecyclerView;
+import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
@@ -134,11 +135,15 @@ public class SearchAdapter extends RecyclerView.Adapter<SearchAdapter.SearchView
                         public void onClick(@NonNull MaterialDialog dialog, @NonNull DialogAction which) {
                             NaverBook event = naverBook;
                             //NaverBook event = naverBookList.get(getAdapterPosition());
+                            String[] isbnArray = event.getIsbn().split(" ");
+                            event.setIsbn(isbnArray[0]);
+                            event.setIsbn13(isbnArray[1]);
                             event.setImage(event.getImage().replace("m1", "m5").replace("m80", "m260"));
                             event.setTitle((Jsoup.parse(naverBook.getTitle()).text()));
                             event.setAuthor(Jsoup.parse(naverBook.getAuthor()).text().replace("|", ", "));
                             event.setPublisher(Jsoup.parse(naverBook.getPublisher()).text());
                             BusProvider.getInstance().post(event);
+                            Log.d("imageLink", event.getImage());
                         }
                     })
                     .show();

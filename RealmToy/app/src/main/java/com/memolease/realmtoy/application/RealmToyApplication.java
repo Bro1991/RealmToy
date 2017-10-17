@@ -24,7 +24,8 @@ public class RealmToyApplication extends Application {
         super.onCreate();
         Realm.init(this);
         RealmConfiguration config = new RealmConfiguration.Builder()
-                .name("hobby.realm")
+                .schemaVersion(0)
+                .name("RealmToy")
                 .build();
         Realm.setDefaultConfiguration(config);
 
