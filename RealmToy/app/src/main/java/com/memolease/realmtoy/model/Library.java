@@ -15,6 +15,7 @@ public class Library extends RealmObject {
     private String name;
     private int category;
     public RealmList<Book> bookRealmList;
+    private int index;
 
     public int getId() {
         return id;
@@ -46,5 +47,13 @@ public class Library extends RealmObject {
 
     public void setBookRealmList(RealmList<Book> bookRealmList) {
         this.bookRealmList = bookRealmList;
+    }
+
+    public int getIndex() {
+        return index;
+    }
+
+    public void setIndex(int index) {
+        this.index = index;
     }
 }

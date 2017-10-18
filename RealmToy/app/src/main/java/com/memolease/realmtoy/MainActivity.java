@@ -387,15 +387,22 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void addDataToRealm(final NaverBook naverBook) {
-        //NaverBook getbook = realm.createObject(NaverBook.class);
-        String FileName = "";
-        if (naverBook.getIsbn() != null) {
-            FileName = naverBook.getIsbn();
+        Number currentIdNum = realm.where(Book.class).max("id");
+        int nextId;
+        if (currentIdNum == null) {
+            nextId = 1;
         } else {
-            FileName = naverBook.getIsbn13();
+            nextId = currentIdNum.intValue() + 1;
         }
 
-        savefolder(naverBook.getImage(), FileName);
+        String FileName = "";
+        if (naverBook.getIsbn13() != null) {
+            FileName = naverBook.getIsbn13();
+        } else {
+            FileName = naverBook.getIsbn();
+        }
+
+        saveImage(naverBook.getImage(), FileName, String.valueOf(nextId));
 
         final Book book = new Book();
         realm.executeTransaction(new Realm.Transaction() {
@@ -410,29 +417,32 @@ public class MainActivity extends AppCompatActivity {
                 }
                 book.setId(nextId);
                 book.setNaverBook(naverBook);
+
+                String FileName = "";
+                if (book.getIsbn13() != null) {
+                    FileName = book.getIsbn13();
+                } else {
+                    FileName = book.getIsbn();
+                }
+
+                //다운로드 경로를 지정
+                String dirPath = getFilesDir().getAbsolutePath() + SAVE_FOLDER;
+                //String savePath = dirPath + "book_cover";
+                String savePath = dirPath + SAVE_BOOK_COVER;
+                String localPath = "/" + FileName + ".png";
+                //saveImage(book.getImageURL(), FileName, String.valueOf(book.getId()));
+                book.setImagePath(savePath + localPath);
                 Log.d("book모델", book.getTitle() + book.getAuthor() + book.getPublisher());
+                Log.d("book이미지 경로", book.getImagePath());
                 realm.copyToRealmOrUpdate(book);
+                Log.d("book모델", "저장성공");
             }
         });
+        //saveImage(naverBook.getImage(), FileName);
         bookList.add(book);
         //naverBookArrayList.add(naverBook);
         bookAdapter.notifyDataSetChanged();
-    }
-
-    @Subscribe
-    public void getimagess(final AddBookImageEvent addBookImageEvent) {
-        Log.d("북이미지 이벤트버스로 보냄", "책 이미지파일을 받았다");
-        //book.setBytes(addBookImageEvent.getBytes());
-        realm.executeTransaction(new Realm.Transaction() {
-            @Override
-            public void execute(Realm realm) {
-                Book realmResults = realm.where(Book.class).equalTo("isbn", addBookImageEvent.getIsbn()).findFirst();
-                realmResults.setBytes(addBookImageEvent.getBytes());
-                realm.copyToRealmOrUpdate(realmResults);
-                Log.d("북 이미지 file", "file Realm 저장성공");
-            }
-        });
-
+        Log.d("book adapter", "어댑터 리프레시");
     }
 
     @Subscribe
@@ -454,9 +464,14 @@ public class MainActivity extends AppCompatActivity {
         bookAdapter.notifyDataSetChanged();
     }
 
-    private void savefolder(String uriString, String filename) {
+    /**
+     * @param   uriString  내가 저장하고자 하는 이미지의 URL
+     * @param   filename   내가 저장하고자 하는 파일의 이름
+     * @param   id   내가 저장하고자 하는 책의 id값
+     */
+    private void saveImage(String uriString, String filename, String id) {
         ImageDownloads imageDownloads = new ImageDownloads();
-        imageDownloads.execute(uriString, filename);
+        imageDownloads.execute(uriString, filename, id);
     }
 
     private void createDirectoryFolder() {
@@ -577,6 +592,8 @@ public class MainActivity extends AppCompatActivity {
             String fileUrl = strings[0];
             //받아온 filename = book_isbn
             filename = strings[1];
+            String bookid = strings[2];
+            int id = Integer.parseInt(bookid);
 
             try {
                 URL imgUrl = new URL(fileUrl);
@@ -593,6 +610,7 @@ public class MainActivity extends AppCompatActivity {
                  * @param   child   내가 저장하고자 하는 파일의 이름
                  */
                 File saveFile = new File(savePath, localPaths);
+                String saveFilePath = saveFile.getAbsolutePath();
 
                 //파일이 생성이 안 될수도 있어서 생성시키는 코드
                 saveFile.createNewFile();
@@ -600,7 +618,7 @@ public class MainActivity extends AppCompatActivity {
                 //파일 저장 스트림 생성
                 FileOutputStream fileOutputStream = new FileOutputStream(saveFile);
 
-                AddBookImageEvent event = new AddBookImageEvent(filename, saveFile.getPath());
+                AddBookImageEvent event = new AddBookImageEvent(id, saveFilePath);
                 Log.d("생성된 파일 경로", saveFile.getPath());
                 Log.d("생성된 파일 절대경로", saveFile.getAbsolutePath());
 
@@ -625,16 +643,20 @@ public class MainActivity extends AppCompatActivity {
         @Override
         protected void onPostExecute(final AddBookImageEvent event) {
             super.onPostExecute(event);
+            Log.d("가져온 경로", event.getImagePath());
+            final String getPath = event.getImagePath();
             realm.executeTransaction(new Realm.Transaction() {
                 @Override
                 public void execute(Realm realm) {
-                    Book realmResults = realm.where(Book.class).equalTo("isbn", event.getIsbn()).findFirst();
+                    Book realmResults = realm.where(Book.class).equalTo("id", event.getBookid()).findFirst();
+                    Log.d("가져온 책 이름", realmResults.getTitle());
                     //realmResults.setBytes(event.getBytes());
-                    realmResults.setImage_path(event.getImagePath());
+                    realmResults.setImagePath(event.getImagePath());
                     realm.copyToRealmOrUpdate(realmResults);
                     Log.d("북 이미지 file", "file Realm 저장성공");
                 }
             });
+            bookAdapter.notifyDataSetChanged();
         }
     }
 }

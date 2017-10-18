@@ -3,6 +3,7 @@ package com.memolease.realmtoy;
 import android.content.Context;
 import android.content.Intent;
 import android.support.v7.widget.RecyclerView;
+import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
@@ -16,6 +17,7 @@ import com.memolease.realmtoy.activity.BookDetailActivity;
 import com.memolease.realmtoy.model.Book;
 import com.memolease.realmtoy.util.BusProvider;
 
+import java.io.File;
 import java.util.List;
 
 /**
@@ -57,7 +59,14 @@ public class BookAdapter extends RecyclerView.Adapter<BookAdapter.BookViewHolder
 
         holder.setAdapter(this);
 
+        File file = new File(book.getImagePath());
+        Log.d("파일경로", file.getPath());
+        //File file = new File(mBook.getImage_path());
         Glide.with(holder.book_image.getContext())
+                .load(file)
+                .into(holder.book_image);
+
+/*        Glide.with(holder.book_image.getContext())
                 .load(book.getImage())
                 .diskCacheStrategy(DiskCacheStrategy.RESULT)
                 .into(new GlideDrawableImageViewTarget(holder.book_image) {
@@ -68,7 +77,7 @@ public class BookAdapter extends RecyclerView.Adapter<BookAdapter.BookViewHolder
                         holder.book_image.setScaleType(ImageView.ScaleType.MATRIX);
                         holder.book_image.setVisibility(View.VISIBLE);
                     }
-                });
+                });*/
     }
 
     @Override
@@ -96,7 +105,7 @@ public class BookAdapter extends RecyclerView.Adapter<BookAdapter.BookViewHolder
                     detail.putExtra("title", book.getTitle());
                     detail.putExtra("author", book.getAuthor());
                     detail.putExtra("dedatil", makeBookDescription(book));
-                    detail.putExtra("image", book.getImage());
+                    detail.putExtra("image", book.getImagePath());
                     context.startActivity(detail);
                 }
             });

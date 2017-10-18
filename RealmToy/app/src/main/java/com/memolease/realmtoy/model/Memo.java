@@ -8,13 +8,12 @@ import io.realm.annotations.PrimaryKey;
  */
 
 public class Memo extends RealmObject {
-    int bookid;
-
     @PrimaryKey
-    int id;
-    String title;
-    String content;
-    String updatedAt;
+    private int id;
+    private int bookid;
+    private String title;
+    private String content;
+    private String updatedAt;
 
     public Memo() {
     }

@@ -33,7 +33,12 @@ public class Book extends RealmObject {
     int readState;
 
     private String ImagePath;
+    int rating;
+    int index;
+
     public RealmList<Memo> memoList;
+    public RealmList<PhotoMemo> photoMemoList;
+
 
     public int getId() {
         return id;
@@ -154,6 +159,14 @@ public class Book extends RealmObject {
         this.memoList = memoList;
     }
 
+    public RealmList<PhotoMemo> getPhotoMemoList() {
+        return photoMemoList;
+    }
+
+    public void setPhotoMemoList(RealmList<PhotoMemo> photoMemoList) {
+        this.photoMemoList = photoMemoList;
+    }
+
     public int getReadState() {
         return readState;
     }
@@ -168,6 +181,22 @@ public class Book extends RealmObject {
 
     public void setImagePath(String imagePath) {
         ImagePath = imagePath;
+    }
+
+    public int getRating() {
+        return rating;
+    }
+
+    public void setRating(int rating) {
+        this.rating = rating;
+    }
+
+    public int getIndex() {
+        return index;
+    }
+
+    public void setIndex(int index) {
+        this.index = index;
     }
 
     public void setNaverBook(NaverBook naverBook) {
