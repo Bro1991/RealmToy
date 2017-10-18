@@ -135,6 +135,16 @@ public class SearchAdapter extends RecyclerView.Adapter<SearchAdapter.SearchView
                         public void onClick(@NonNull MaterialDialog dialog, @NonNull DialogAction which) {
                             NaverBook event = naverBook;
                             //NaverBook event = naverBookList.get(getAdapterPosition());
+                            String[] chunks = naverBook.getTitle().split("\\(");
+                            if (chunks.length > 1) {
+                                String[] afterChunks = chunks[1].split("\\)");
+
+                                if (afterChunks.length == 1) {
+                                    event.setSub_title(("- " + afterChunks[0]));
+                                }
+                            } else {
+                                event.setTitle(chunks[0]);
+                            }
                             String[] isbnArray = event.getIsbn().split(" ");
                             event.setIsbn(isbnArray[0]);
                             event.setIsbn13(isbnArray[1]);

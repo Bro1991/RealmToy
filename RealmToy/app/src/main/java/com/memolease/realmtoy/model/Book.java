@@ -19,9 +19,9 @@ public class Book extends RealmObject {
     @PrimaryKey
     private int id;
     private String title;
+    private String sub_title;
     private String link;
-    private String image;
-
+    private String ImageURL;
     private String author;
     private String price;
     private String discount;
@@ -32,10 +32,7 @@ public class Book extends RealmObject {
     private String description;
     int readState;
 
-    private String image_path;
-
-    private byte[] bytes;
-
+    private String ImagePath;
     public RealmList<Memo> memoList;
 
     public int getId() {
@@ -54,6 +51,14 @@ public class Book extends RealmObject {
         this.title = title;
     }
 
+    public String getSub_title() {
+        return sub_title;
+    }
+
+    public void setSub_title(String sub_title) {
+        this.sub_title = sub_title;
+    }
+
     public String getLink() {
         return link;
     }
@@ -62,12 +67,12 @@ public class Book extends RealmObject {
         this.link = link;
     }
 
-    public String getImage() {
-        return image;
+    public String getImageURL() {
+        return ImageURL;
     }
 
-    public void setImage(String image) {
-        this.image = image;
+    public void setImageURL(String imageURL) {
+        ImageURL = imageURL;
     }
 
     public String getAuthor() {
@@ -157,32 +162,25 @@ public class Book extends RealmObject {
         this.readState = readState;
     }
 
-    public byte[] getBytes() {
-        return bytes;
+    public String getImagePath() {
+        return ImagePath;
     }
 
-    public void setBytes(byte[] bytes) {
-        this.bytes = bytes;
-    }
-
-    public String getImage_path() {
-        return image_path;
-    }
-
-    public void setImage_path(String image_path) {
-        this.image_path = image_path;
+    public void setImagePath(String imagePath) {
+        ImagePath = imagePath;
     }
 
     public void setNaverBook(NaverBook naverBook) {
         this.title = naverBook.getTitle();
         this.link = naverBook.getLink();
-        this.image = naverBook.getImage();
+        this.ImageURL = naverBook.getImage();
         this.author = naverBook.getAuthor();
         this.discount = naverBook.getDiscount();
         this.price = naverBook.getPrice();
         this.publisher = naverBook.getPublisher();
         this.pubdate = naverBook.getPubdate();
         this.isbn = naverBook.getIsbn();
+        this.isbn13 = naverBook.getIsbn13();
         this.description = naverBook.getDescription();
     }
 }

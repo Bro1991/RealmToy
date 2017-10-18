@@ -16,6 +16,8 @@ public class NaverBook{
     @Expose
     private String title;
 
+    private String sub_title;
+
     @SerializedName("link")
     @Expose
     private String link;
@@ -68,6 +70,14 @@ public class NaverBook{
 
     public void setTitle(String title) {
         this.title = title;
+    }
+
+    public String getSub_title() {
+        return sub_title;
+    }
+
+    public void setSub_title(String sub_title) {
+        this.sub_title = sub_title;
     }
 
     public String getLink() {

@@ -109,8 +109,11 @@ public class BookDetailActivity extends AppCompatActivity {
                 mTitleParse.setText("- " + afterChunks[0]);
                 mTitleView.setText(chunks[0]);
             }
+        } else {
+            mTitleParse.setVisibility(View.GONE);
+            mTitleView.setText(mBook.getTitle());
         }
-        textView4.setText(mBook.getImage_path());
+        textView4.setText(mBook.getImageURL());
         mAuthorView.setText(mBook.getAuthor());
         mDescriptionView.setText(makeBookDescription(mBook));
 /*        Glide.with(mBookImageView.getContext())
@@ -123,7 +126,8 @@ public class BookDetailActivity extends AppCompatActivity {
                     }
                 });*/
 
-        File file = new File(getFilesDir().getPath() + mBook.getImage_path());
+        //File file = new File(getFilesDir().getPath() + mBook.getImage_path());
+        File file = new File(mBook.getImagePath());
         Log.d("파일경로", file.getPath());
         //File file = new File(mBook.getImage_path());
         Glide.with(mBookImageView.getContext())

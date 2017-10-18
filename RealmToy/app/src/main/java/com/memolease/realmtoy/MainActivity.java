@@ -3,7 +3,6 @@ package com.memolease.realmtoy;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
-import android.media.Image;
 import android.os.AsyncTask;
 import android.os.Environment;
 import android.support.v4.widget.DrawerLayout;
@@ -22,26 +21,19 @@ import com.memolease.realmtoy.model.Book;
 import com.memolease.realmtoy.model.Memo;
 import com.memolease.realmtoy.util.BackPressFinishHandler;
 import com.memolease.realmtoy.util.BusProvider;
-import com.memolease.realmtoy.util.ImageDownload;
-import com.memolease.realmtoy.util.MainThreadBus;
+
 import com.squareup.otto.Bus;
 import com.squareup.otto.Subscribe;
 
-import org.greenrobot.eventbus.EventBus;
-import org.greenrobot.eventbus.EventBusBuilder;
-import org.greenrobot.eventbus.ThreadMode;
 
 import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
-import java.net.URLConnection;
 import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.List;
@@ -60,13 +52,13 @@ public class MainActivity extends AppCompatActivity {
 
     GridLayoutManager mLayoutManager;
     Context mContext;
-    MainThreadBus bus = new MainThreadBus();
+    //File root = getFilesDir().getAbsoluteFile();
 
     private final String SAVE_FOLDER = "/RealmToy_Backup";
+    private final String SAVE_BOOK_COVER = "/book_cover";
 
     private File path;
     private File outputFile;
-
 
     //StickyListHeadersListView mLibraryListView;
 
@@ -75,7 +67,6 @@ public class MainActivity extends AppCompatActivity {
     Bus mBus = BusProvider.getInstance();
     private Realm realm;
     private BackPressFinishHandler backPressFinishHandler;
-    byte[] getbytes;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -83,9 +74,6 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
         mContext = this;
         mBus.register(this);
-        bus.register(this);
-
-        EventBus.getDefault().register(this);
 
 /*        mLibraryListView = (StickyListHeadersListView) findViewById(R.id.drawer_list);
         mLibraryListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
@@ -117,16 +105,13 @@ public class MainActivity extends AppCompatActivity {
                 .build();
 
         bookApiService = retrofit.create(BookApiService.class);*/
+        createDirectoryFolder();
         initRecycler();
         initRealm();
 
-        File files[] = getFilesDir().listFiles();
-        if (files != null) {
-            for (int i = 0; i < files.length; i++) {
-                Log.d("파일리스트", files[i].getName().toString());
-            }
-        }
 
+        searchFile();
+        searchBookcover();
 
 /*        search_button.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -164,6 +149,41 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
+    private void searchFile() {
+        //폴더생겼는지 여부 파악하기 위한 것들
+        File root = getFilesDir().getAbsoluteFile();
+        String savePath = root.getPath() + SAVE_FOLDER;
+
+        File file = new File(savePath);
+        File files[] = file.listFiles();
+        //File files[] = getFilesDir().listFiles();
+        if (files != null) {
+            for (int i = 0; i < files.length; i++) {
+                Log.d("파일리스트", files[i].getName().toString());
+            }
+        } else {
+            Log.d("백업폴더 존재유무", "백업폴더가 아직 생성이 안되었음");
+        }
+    }
+
+    private void searchBookcover() {
+        //폴더생겼는지 여부 파악하기 위한 것들
+        File root = getFilesDir().getAbsoluteFile();
+        //String savePath = root.getPath() + SAVE_FOLDER + "book_cover";
+        String savePath = root.getPath() + SAVE_FOLDER + SAVE_BOOK_COVER;
+
+        File file = new File(savePath);
+        File files[] = file.listFiles();
+        //File files[] = getFilesDir().listFiles();
+        if (files != null) {
+            for (int i = 0; i < files.length; i++) {
+                Log.d("book_cover 파일리스트", files[i].getName().toString());
+            }
+        } else {
+            Log.d("book_cover 파일리스트", "없음");
+        }
+    }
+
     public File getAlbumStorageDir(Context context, String albumName) {
         // Get the directory for the app's private pictures directory.
         File file = new File(context.getExternalFilesDir(
@@ -173,8 +193,6 @@ public class MainActivity extends AppCompatActivity {
         }
         return file;
     }
-
-
 
     private void drawerLayoutInit() {
         mDrawerLayout = (DrawerLayout) findViewById(R.id.drawer_layout);
@@ -361,40 +379,10 @@ public class MainActivity extends AppCompatActivity {
         //bookAdapter.notifyDataSetChanged();
     }
 
-    public byte[] readFile(String a_sParentPath, String a_sFileName) {
-        byte[] bArData = null;
-        if (a_sParentPath != null && a_sParentPath.length() > 0) {
-            File oDatabFolder = new File(a_sParentPath);
-            if (oDatabFolder != null && oDatabFolder.exists() == true && oDatabFolder.isDirectory() == true) {
-                String sFile = a_sParentPath + a_sFileName;
-
-                try {
-                    FileInputStream oInputStream = new FileInputStream(sFile);
-                    int nCount = oInputStream.available();
-                    if (nCount > 0) {
-                        bArData = new byte[nCount];
-                        oInputStream.read(bArData);
-                    }
-
-                    if (oInputStream != null) {
-                        oInputStream.close();
-                    }
-                } catch (FileNotFoundException e) {
-                    e.printStackTrace();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            }
-        }
-        return bArData;
-    }
-
     @Override
     protected void onDestroy() {
         super.onDestroy();
         mBus.unregister(this);
-        bus.unregister(this);
-        EventBus.getDefault().unregister(this);
         realm.close();
     }
 
@@ -447,31 +435,6 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
-    @org.greenrobot.eventbus.Subscribe(threadMode = ThreadMode.ASYNC)
-    public void getImage(AddBookImageEvent addBookImageEvent) {
-        Log.d("북이미지 이벤트", "책 이미지파일을 받았다");
-        mBus.post(addBookImageEvent);
-/*        Book realmResults = realm.where(Book.class).equalTo("isbn", addBookImageEvent.getIsbn()).findFirst();
-        Book book = new Book();
-
-        if (realmResults != null) {
-            book = realm.where(Book.class).equalTo("isbn", addBookImageEvent.getIsbn()).findFirst();
-        } else {
-            book = realm.where(Book.class).equalTo("isbn13", addBookImageEvent.getIsbn()).findFirst();
-        }
-
-        final Book finalBook = book;
-        book.setBytes(addBookImageEvent.getBytes());
-        realm.executeTransaction(new Realm.Transaction() {
-            @Override
-            public void execute(Realm realm) {
-                realm.copyToRealmOrUpdate(finalBook);
-                Log.d("북 이미지 file", "file Realm 저장성공");
-            }
-        });*/
-
-    }
-
     @Subscribe
     public void removeRealmdata(final DeleteBookEvent deleteBookEvent) {
         final Book realmResults = realm.where(Book.class).equalTo("id", deleteBookEvent.getId()).findFirst();
@@ -496,13 +459,29 @@ public class MainActivity extends AppCompatActivity {
         imageDownloads.execute(uriString, filename);
     }
 
+    private void createDirectoryFolder() {
+        String dirPath = getFilesDir().getAbsolutePath();
+        //String createFolderPath = dirPath + "RealmToy_BackUp";
+        String createFolderPath = dirPath + SAVE_FOLDER;
 
+        File createFolder = new File(createFolderPath);
+        Log.d("다운로드 경로 지정", "지정성공");
+
+        //상위 디렉토리가 존재하지 않을 경우 생성
+        if (!createFolder.exists()) {
+            Log.d("저장할 폴더가 없다", "폴더 만들기");
+            createFolder.mkdirs();
+            Log.d("저장할 폴더생성", "RealmToy_BackUp 폴더 만들기 성공");
+        }
+    }
+
+    //ImageURL을 통해서 image를 png파일로 저장하기 위한 클래스
     public class ImageDownloads extends AsyncTask<String, Void, AddBookImageEvent> {
         String filename;
 
         @Override
         protected AddBookImageEvent doInBackground(String... strings) {
-            //다운로드 경로를 지정
+           /* //다운로드 경로를 지정
             String savePath = Environment.getExternalStorageDirectory().getAbsolutePath() + SAVE_FOLDER;
             String sds = getExternalFilesDir(DOWNLOAD_SERVICE).getPath();
 
@@ -522,8 +501,6 @@ public class MainActivity extends AppCompatActivity {
                 Log.d("경로가 없다", "경로만들기");
                 exdir.mkdirs();
             }
-
-
 
             //웹 서버 쪽 파일이 있는 경로
             String fileUrl = strings[0];
@@ -572,6 +549,69 @@ public class MainActivity extends AppCompatActivity {
                 }
                 is.close();
                 fos.close();
+                fileOutputStream.close();
+                conn.disconnect();
+                Log.d("파일저장", "성공");
+                return event;
+            } catch (IOException e) {
+                e.printStackTrace();
+                return null;
+            }*/
+
+
+            //다운로드 경로를 지정
+            String dirPath = getFilesDir().getAbsolutePath() + SAVE_FOLDER;
+            //String savePath = dirPath + "book_cover";
+            String savePath = dirPath + SAVE_BOOK_COVER;
+
+            File dir = new File(savePath);
+            Log.d("북 커버 다운로드 폴더", "폴더 생성 성공");
+
+            //상위 디렉토리가 존재하지 않을 경우 생성
+            if (!dir.exists()) {
+                Log.d("저장할 상위 폴더가 없다", "상위 폴더 만들기");
+                dir.mkdirs();
+            }
+
+            //웹 서버 쪽 파일이 있는 경로
+            String fileUrl = strings[0];
+            //받아온 filename = book_isbn
+            filename = strings[1];
+
+            try {
+                URL imgUrl = new URL(fileUrl);
+                //서버와 접속하는 클라이언트 객체 생성
+                HttpURLConnection conn = (HttpURLConnection) imgUrl.openConnection();
+
+                String localPaths = filename + ".png";
+
+                //입력 스트림을 구한다
+                InputStream is = conn.getInputStream();
+                //File file = new File(localPath);
+                /**
+                 * @param   parent  내가 저장하고자 하는 폴더의 경로
+                 * @param   child   내가 저장하고자 하는 파일의 이름
+                 */
+                File saveFile = new File(savePath, localPaths);
+
+                //파일이 생성이 안 될수도 있어서 생성시키는 코드
+                saveFile.createNewFile();
+
+                //파일 저장 스트림 생성
+                FileOutputStream fileOutputStream = new FileOutputStream(saveFile);
+
+                AddBookImageEvent event = new AddBookImageEvent(filename, saveFile.getPath());
+                Log.d("생성된 파일 경로", saveFile.getPath());
+                Log.d("생성된 파일 절대경로", saveFile.getAbsolutePath());
+
+                //입력 스트림을 파일로 저장하기 위한 코드
+                byte[] buf = new byte[1024];
+                int count;
+                while ((count = is.read(buf)) > 0) {
+                    //file 생성 및 폴더에 넣기
+                    fileOutputStream.write(buf, 0, count);
+                }
+                is.close();
                 fileOutputStream.close();
                 conn.disconnect();
                 Log.d("파일저장", "성공");

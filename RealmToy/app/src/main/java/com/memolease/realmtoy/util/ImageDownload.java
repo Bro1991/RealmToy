@@ -14,6 +14,8 @@ import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
 
+import io.realm.Realm;
+
 /**
  * Created by bro on 2017-10-16.
  */
