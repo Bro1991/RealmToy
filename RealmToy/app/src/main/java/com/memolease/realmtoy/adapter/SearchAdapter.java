@@ -1,4 +1,4 @@
-package com.memolease.realmtoy;
+package com.memolease.realmtoy.adapter;
 
 import android.content.Context;
 import android.graphics.Color;
@@ -9,7 +9,6 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import com.afollestad.materialdialogs.DialogAction;
 import com.afollestad.materialdialogs.MaterialDialog;
@@ -18,6 +17,9 @@ import com.bumptech.glide.load.engine.DiskCacheStrategy;
 import com.bumptech.glide.load.resource.drawable.GlideDrawable;
 import com.bumptech.glide.request.animation.GlideAnimation;
 import com.bumptech.glide.request.target.GlideDrawableImageViewTarget;
+import com.memolease.realmtoy.util.BookRegistDialogView;
+import com.memolease.realmtoy.network.networkModel.NaverBook;
+import com.memolease.realmtoy.R;
 import com.memolease.realmtoy.util.BusProvider;
 
 import org.jsoup.Jsoup;
@@ -39,7 +41,7 @@ public class SearchAdapter extends RecyclerView.Adapter<SearchAdapter.SearchView
         this.naverBookList = naverBookList;
     }
 
-    public boolean isLast (int position) {
+    public boolean isLast(int position) {
         return this.bookSize == (position + 1);
     }
 
@@ -83,8 +85,8 @@ public class SearchAdapter extends RecyclerView.Adapter<SearchAdapter.SearchView
     public void addItems(ArrayList<NaverBook> newItems) {
         for (NaverBook item : newItems)
             naverBookList.add(item);
-    notifyDataSetChanged();
-}
+        notifyDataSetChanged();
+    }
 
     public void refresh() {
         if (naverBookList == null)
@@ -115,14 +117,16 @@ public class SearchAdapter extends RecyclerView.Adapter<SearchAdapter.SearchView
             v.setOnClickListener(this);
         }
 
-        public void setAdapter(SearchAdapter adapter) { this.searchAdapter = adapter; }
+        public void setAdapter(SearchAdapter adapter) {
+            this.searchAdapter = adapter;
+        }
 
         @Override
         public void onClick(View v) {
             //((SearchBookActivity)SearchBookActivity.mContext).finish();
             naverBook = naverBookList.get(getAdapterPosition());
 
-            BookRegistDialogView dialogView = new BookRegistDialogView(context, naverBook);
+            final BookRegistDialogView dialogView = new BookRegistDialogView(context, naverBook);
 
             MaterialDialog materialDialog = new MaterialDialog.Builder(context)
                     .customView(dialogView, false)
@@ -135,15 +139,17 @@ public class SearchAdapter extends RecyclerView.Adapter<SearchAdapter.SearchView
                         public void onClick(@NonNull MaterialDialog dialog, @NonNull DialogAction which) {
                             NaverBook event = naverBook;
                             //NaverBook event = naverBookList.get(getAdapterPosition());
-                            String[] chunks = naverBook.getTitle().split("\\(");
+                            String paresTitle = Jsoup.parse(naverBook.getTitle()).text();
+                            String[] chunks = paresTitle.split("\\(");
                             if (chunks.length > 1) {
                                 String[] afterChunks = chunks[1].split("\\)");
 
-                                if (afterChunks.length == 1) {
+                                if (afterChunks.length >= 1) {
+                                    event.setTitle(chunks[0]);
                                     event.setSub_title(("- " + afterChunks[0]));
                                 }
                             } else {
-                                event.setTitle(chunks[0]);
+                                event.setTitle(naverBook.getTitle());
                             }
                             String[] isbnArray = event.getIsbn().split(" ");
                             event.setIsbn(isbnArray[0]);
@@ -152,6 +158,7 @@ public class SearchAdapter extends RecyclerView.Adapter<SearchAdapter.SearchView
                             event.setTitle((Jsoup.parse(naverBook.getTitle()).text()));
                             event.setAuthor(Jsoup.parse(naverBook.getAuthor()).text().replace("|", ", "));
                             event.setPublisher(Jsoup.parse(naverBook.getPublisher()).text());
+                            event.setReadState(dialogView.readState);
                             BusProvider.getInstance().post(event);
                             Log.d("imageLink", event.getImage());
                         }

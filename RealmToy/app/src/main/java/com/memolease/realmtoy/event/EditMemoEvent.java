@@ -1,4 +1,4 @@
-package com.memolease.realmtoy;
+package com.memolease.realmtoy.event;
 
 import com.memolease.realmtoy.model.Memo;
 

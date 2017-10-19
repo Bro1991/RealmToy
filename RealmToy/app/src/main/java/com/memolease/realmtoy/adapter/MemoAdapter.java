@@ -1,4 +1,4 @@
-package com.memolease.realmtoy;
+package com.memolease.realmtoy.adapter;
 
 import android.content.Context;
 import android.content.Intent;
@@ -9,7 +9,9 @@ import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.TextView;
 
+import com.memolease.realmtoy.R;
 import com.memolease.realmtoy.activity.MemoEditActivity;
+import com.memolease.realmtoy.event.deleteMemo;
 import com.memolease.realmtoy.model.Memo;
 import com.memolease.realmtoy.util.BusProvider;
 

@@ -6,7 +6,7 @@
     android:layout_height="match_parent"
     android:orientation="vertical"
     android:background="#ffffff"
-    tools:context="com.memolease.realmtoy.SearchBookActivity">
+    tools:context="com.memolease.realmtoy.activity.SearchBookActivity">
 
     <LinearLayout
         android:orientation="horizontal"

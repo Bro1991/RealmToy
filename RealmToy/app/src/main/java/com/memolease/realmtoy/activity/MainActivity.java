@@ -1,10 +1,10 @@
-package com.memolease.realmtoy;
+package com.memolease.realmtoy.activity;
 
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.AsyncTask;
-import android.os.Environment;
+import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AlertDialog;
@@ -16,9 +16,18 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.AdapterView;
 
+import com.memolease.realmtoy.R;
+import com.memolease.realmtoy.adapter.BookAdapter;
+import com.memolease.realmtoy.adapter.LibraryAdapter;
+import com.memolease.realmtoy.event.AddBookImageEvent;
+import com.memolease.realmtoy.event.DeleteBookEvent;
 import com.memolease.realmtoy.model.Book;
+import com.memolease.realmtoy.model.Library;
 import com.memolease.realmtoy.model.Memo;
+import com.memolease.realmtoy.network.networkModel.Channel;
+import com.memolease.realmtoy.network.networkModel.NaverBook;
 import com.memolease.realmtoy.util.BackPressFinishHandler;
 import com.memolease.realmtoy.util.BusProvider;
 
@@ -40,15 +49,19 @@ import java.util.List;
 
 import io.realm.Realm;
 import io.realm.RealmResults;
+import se.emilsjolander.stickylistheaders.StickyListHeadersListView;
 
 
 public class MainActivity extends AppCompatActivity {
     RecyclerView book_recycler;
     BookAdapter bookAdapter;
     ArrayList<NaverBook> naverBookArrayList = new ArrayList<>();
+    ArrayList<Library> libraryList = new ArrayList<>();
     List<Book> bookList = new ArrayList<>();
     DrawerLayout mDrawerLayout;
     ActionBarDrawerToggle mDrawerToggle;
+    StickyListHeadersListView mLibraryListView;
+    LibraryAdapter libraryAdapter;
 
     GridLayoutManager mLayoutManager;
     Context mContext;
@@ -75,77 +88,17 @@ public class MainActivity extends AppCompatActivity {
         mContext = this;
         mBus.register(this);
 
-/*        mLibraryListView = (StickyListHeadersListView) findViewById(R.id.drawer_list);
-        mLibraryListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-            @Override
-            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-
-            }
-        });*/
-
         realm = Realm.getDefaultInstance();
         backPressFinishHandler = new BackPressFinishHandler(this);
-        //editText = (EditText) findViewById(R.id.editText);
-        //search_button = (Button) findViewById(R.id.search_button);
-/*        text1 = (TextView) findViewById(R.id.text1);
-        text2 = (TextView) findViewById(R.id.text2);
-        text3 = (TextView) findViewById(R.id.text3);
-        text4 = (TextView) findViewById(R.id.text4);
-        text5 = (TextView) findViewById(R.id.text5);*/
 
-/*        OkHttpClient client = new OkHttpClient.Builder()
-                .addInterceptor(new NApiInterceptor())
-                .addInterceptor(new LoggingIntercepter())
-                .build();
-
-        retrofit = new Retrofit.Builder()
-                .baseUrl("https://openapi.naver.com")
-                .client(client)
-                .addConverterFactory(GsonConverterFactory.create())
-                .build();
-
-        bookApiService = retrofit.create(BookApiService.class);*/
         createDirectoryFolder();
         initRecycler();
-        initRealm();
-
+        drawerLayoutInit();
+        initLibraryRealm();
+        initBookRealm();
 
         searchFile();
         searchBookcover();
-
-/*        search_button.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                getBook();
-                //getResponse();
-*//*
-                try {
-                    String query = editText.getText().toString();
-                    //query = URLEncoder.encode(query, "UTF-8");
-                    //String query = editText.getText().toString();
-                    //String target = "book_adv.json";
-                    String target = "book.json";
-
-                    Call<ResponseBody> getResponse = bookApiService.getResponse(target, query, 10, 1);
-                    getResponse.enqueue(new Callback<ResponseBody>() {
-                        @Override
-                        public void onResponse(Call<ResponseBody> call, retrofit2.Response<ResponseBody> response) {
-                            Log.d("찾은 결과", response.toString());
-                            textView.setText(response.toString());
-                        }
-
-                        @Override
-                        public void onFailure(Call<ResponseBody> call, Throwable t) {
-                            Log.d("에러", t.toString());
-                        }
-                    });
-
-                } catch (Exception e) {
-                    Log.d("에러", e.toString());
-                }*//*
-
-            }
-        });*/
 
     }
 
@@ -184,14 +137,18 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    public File getAlbumStorageDir(Context context, String albumName) {
-        // Get the directory for the app's private pictures directory.
-        File file = new File(context.getExternalFilesDir(
-                Environment.DIRECTORY_PICTURES), albumName);
-        if (!file.mkdirs()) {
-            Log.e("경고", "Directory not created");
-        }
-        return file;
+    @Override
+    protected void onPostCreate(Bundle savedInstanceState) {
+        super.onPostCreate(savedInstanceState);
+        // library disable - temp
+        mDrawerToggle.syncState();
+    }
+
+    @Override
+    public void onConfigurationChanged(android.content.res.Configuration newConfig) {
+        super.onConfigurationChanged(newConfig);
+        // library disable - temp
+        mDrawerToggle.onConfigurationChanged(newConfig);
     }
 
     private void drawerLayoutInit() {
@@ -206,10 +163,34 @@ public class MainActivity extends AppCompatActivity {
 
             @Override
             public void onDrawerClosed(View drawerView) {
-
+                if (libraryAdapter.editMode) {
+                    libraryAdapter.editMode = false;
+                    libraryAdapter.notifyDataSetChanged();
+                }
             }
         };
         mDrawerLayout.setDrawerListener(mDrawerToggle);
+
+        mLibraryListView = (StickyListHeadersListView) findViewById(R.id.drawer_list);
+        mLibraryListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                if (!libraryAdapter.editMode) {
+                    if (libraryAdapter.getItem(position).getType() == 1) {
+                        //UserSharedPreference.getInstance().setSelectedLibraryState(mLibraryAdapter.getItem(position).getRead_state());
+                    } else {
+                        //UserSharedPreference.getInstance().setSelectedLibrary(mLibraryAdapter.getItem(position).getId());
+                    }
+                    //FetchBooksEvent event = new FetchBooksEvent();
+                    //event.setUserId(UserSharedPreference.getInstance().getId());
+                    //mBus.post(event);
+                    mDrawerLayout.closeDrawer(GravityCompat.START);
+                }
+            }
+        });
+
+        libraryAdapter = new LibraryAdapter(this, libraryList);
+        mLibraryListView.setAdapter(libraryAdapter);
     }
 
 
@@ -238,8 +219,8 @@ public class MainActivity extends AppCompatActivity {
         book_recycler.setAdapter(bookAdapter);
     }
 
-    private void initRealm() {
-        RealmResults<Book> books = realm.where(Book.class).findAll();
+    private void initBookRealm() {
+        RealmResults<Book> books = realm.where(Book.class).equalTo("libraryid", 1).findAll();
         if (books.size() != 0) {
             for (Book book : books) {
                 bookList.add(book);
@@ -248,13 +229,47 @@ public class MainActivity extends AppCompatActivity {
                 bookAdapter.bookSize = postion;
                 bookAdapter.notifyItemChanged(postion);
             }
-            RealmResults<Memo> memos = realm.where(Memo.class).equalTo("bookid", 5).findAll();
+/*            RealmResults<Memo> memos = realm.where(Memo.class).equalTo("bookid", 5).findAll();
             for (int i = 0; i < memos.size(); i++) {
                 Log.d("메모 숫자", memos.get(i).getContent());
-            }
+            }*/
 
         } else {
             bookList.clear();
+        }
+    }
+
+    private void initLibraryRealm() {
+        RealmResults<Library> libraryRealmResults = realm.where(Library.class).findAll();
+        if (libraryRealmResults.size() == 0) {
+            Log.d("서재가 없다", "서재를 생성합니다");
+            final Library library = new Library();
+            realm.executeTransaction(new Realm.Transaction() {
+                @Override
+                public void execute(Realm realm) {
+                    library.setTitle("내 기본 서재");
+                    library.setId(1);
+                    library.setType(0);
+                    library.setLibType(1);
+                    realm.copyToRealm(library);
+                    Log.d("기본 서재 생성", "기본서재 생성 성공");
+                }
+            });
+            //libraryList.add(library);
+            Log.d("라이브러리 갯수", String.valueOf(libraryList.size()));
+            libraryAdapter.addrealmItems(libraryRealmResults);
+            Log.d("라이브러리 데이터 업데이트", "업데이트 성공");
+        } else {
+            /*for (Library library : libraryRealmResults) {
+                libraryList.add(library);
+
+            }
+            libraryAdapter.notifyDataSetChanged();*/
+            libraryAdapter.refresh();
+            libraryAdapter.addrealmItems(libraryRealmResults);
+            mLibraryListView.setAdapter(libraryAdapter);
+            Log.d("라이브러리 갯수", String.valueOf(libraryList.size()));
+            Log.d("라이브러리 데이터 업데이트", "업데이트 성공");
         }
     }
 
@@ -365,7 +380,11 @@ public class MainActivity extends AppCompatActivity {
 
     @Override
     public void onBackPressed() {
-        backPressFinishHandler.onBackPressed();
+        if (mDrawerLayout.isDrawerOpen(GravityCompat.START)) {
+            mDrawerLayout.closeDrawer(GravityCompat.START);
+        } else {
+            backPressFinishHandler.onBackPressed();
+        }
     }
 
     @Subscribe
@@ -387,23 +406,6 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void addDataToRealm(final NaverBook naverBook) {
-        Number currentIdNum = realm.where(Book.class).max("id");
-        int nextId;
-        if (currentIdNum == null) {
-            nextId = 1;
-        } else {
-            nextId = currentIdNum.intValue() + 1;
-        }
-
-        String FileName = "";
-        if (naverBook.getIsbn13() != null) {
-            FileName = naverBook.getIsbn13();
-        } else {
-            FileName = naverBook.getIsbn();
-        }
-
-        saveImage(naverBook.getImage(), FileName, String.valueOf(nextId));
-
         final Book book = new Book();
         realm.executeTransaction(new Realm.Transaction() {
             @Override
@@ -417,14 +419,7 @@ public class MainActivity extends AppCompatActivity {
                 }
                 book.setId(nextId);
                 book.setNaverBook(naverBook);
-
-                String FileName = "";
-                if (book.getIsbn13() != null) {
-                    FileName = book.getIsbn13();
-                } else {
-                    FileName = book.getIsbn();
-                }
-
+/*
                 //다운로드 경로를 지정
                 String dirPath = getFilesDir().getAbsolutePath() + SAVE_FOLDER;
                 //String savePath = dirPath + "book_cover";
@@ -432,17 +427,20 @@ public class MainActivity extends AppCompatActivity {
                 String localPath = "/" + FileName + ".png";
                 //saveImage(book.getImageURL(), FileName, String.valueOf(book.getId()));
                 book.setImagePath(savePath + localPath);
-                Log.d("book모델", book.getTitle() + book.getAuthor() + book.getPublisher());
-                Log.d("book이미지 경로", book.getImagePath());
+                */
+/*                Log.d("book모델", book.getTitle() + book.getAuthor() + book.getPublisher());
+                Log.d("book이미지 경로", book.getImagePath());*/
                 realm.copyToRealmOrUpdate(book);
+                String fileName = "";
+                if (book.getIsbn13() != null) {
+                    fileName = book.getIsbn13();
+                } else {
+                    fileName = book.getIsbn();
+                }
+                saveImage(book.getImageURL(), fileName, String.valueOf(book.getId()));
                 Log.d("book모델", "저장성공");
             }
         });
-        //saveImage(naverBook.getImage(), FileName);
-        bookList.add(book);
-        //naverBookArrayList.add(naverBook);
-        bookAdapter.notifyDataSetChanged();
-        Log.d("book adapter", "어댑터 리프레시");
     }
 
     @Subscribe
@@ -465,9 +463,9 @@ public class MainActivity extends AppCompatActivity {
     }
 
     /**
-     * @param   uriString  내가 저장하고자 하는 이미지의 URL
-     * @param   filename   내가 저장하고자 하는 파일의 이름
-     * @param   id   내가 저장하고자 하는 책의 id값
+     * @param uriString Internal Storage에 저장하고자 하는 이미지의 URL
+     * @param filename  Internal Storage에 저장하고자 하는 파일의 이름
+     * @param id        Realm에 정보를 업데이트할 책의 id값
      */
     private void saveImage(String uriString, String filename, String id) {
         ImageDownloads imageDownloads = new ImageDownloads();
@@ -487,6 +485,80 @@ public class MainActivity extends AppCompatActivity {
             Log.d("저장할 폴더가 없다", "폴더 만들기");
             createFolder.mkdirs();
             Log.d("저장할 폴더생성", "RealmToy_BackUp 폴더 만들기 성공");
+        }
+    }
+
+    /**
+     * @param imageURL 내가 저장하고자 하는 폴더의 경로
+     * @param filename 내가 저장하고자 하는 파일의 이름
+     */
+    private String downloadImage(String imageURL, String filename) {
+        //다운로드 경로를 지정
+        String dirPath = getFilesDir().getAbsolutePath() + SAVE_FOLDER;
+        //String savePath = dirPath + "book_cover";
+        String savePath = dirPath + SAVE_BOOK_COVER;
+
+        File dir = new File(savePath);
+        Log.d("북 커버 다운로드 폴더", "폴더 생성 성공");
+
+        //상위 디렉토리가 존재하지 않을 경우 생성
+        if (!dir.exists()) {
+            Log.d("저장할 상위 폴더가 없다", "상위 폴더 만들기");
+            dir.mkdirs();
+        }
+
+        //이미지url, 저장될 파일이름(isbn), 저장할 북 id값
+
+/*
+        //웹 서버 쪽 파일이 있는 경로
+        String fileUrl = strings[0];
+        //받아온 filename = book_isbn
+        filename = strings[1];
+        String bookid = strings[2];
+        int id = Integer.parseInt(bookid);
+*/
+
+        try {
+            URL imgUrl = new URL(imageURL);
+            //서버와 접속하는 클라이언트 객체 생성
+            HttpURLConnection conn = (HttpURLConnection) imgUrl.openConnection();
+
+            String localPaths = filename + ".png";
+
+            //입력 스트림을 구한다
+            InputStream is = conn.getInputStream();
+            //File file = new File(localPath);
+
+            File saveFile = new File(savePath, localPaths);
+            String saveFilePath = saveFile.getPath();
+
+            //파일이 생성이 안 될수도 있어서 생성시키는 코드
+            saveFile.createNewFile();
+
+            //파일 저장 스트림 생성
+            FileOutputStream fileOutputStream = new FileOutputStream(saveFile);
+
+            //AddBookImageEvent event = new AddBookImageEvent(id, saveFilePath);
+            //String saveFilePath = saveFile.getPath();
+            Log.d("생성된 파일 경로", saveFile.getPath());
+            Log.d("생성된 파일 절대경로", saveFile.getAbsolutePath());
+
+            //입력 스트림을 파일로 저장하기 위한 코드
+            byte[] buf = new byte[1024];
+            int count;
+            while ((count = is.read(buf)) > 0) {
+                //file 생성 및 폴더에 넣기
+                fileOutputStream.write(buf, 0, count);
+            }
+            is.close();
+            fileOutputStream.close();
+            conn.disconnect();
+            Log.d("파일저장", "성공");
+            return saveFilePath;
+        } catch (IOException e) {
+            e.printStackTrace();
+            Log.d("파일저장", "실패");
+            return null;
         }
     }
 
@@ -643,19 +715,17 @@ public class MainActivity extends AppCompatActivity {
         @Override
         protected void onPostExecute(final AddBookImageEvent event) {
             super.onPostExecute(event);
-            Log.d("가져온 경로", event.getImagePath());
-            final String getPath = event.getImagePath();
+            final Book book = new Book();
             realm.executeTransaction(new Realm.Transaction() {
                 @Override
                 public void execute(Realm realm) {
                     Book realmResults = realm.where(Book.class).equalTo("id", event.getBookid()).findFirst();
-                    Log.d("가져온 책 이름", realmResults.getTitle());
-                    //realmResults.setBytes(event.getBytes());
                     realmResults.setImagePath(event.getImagePath());
                     realm.copyToRealmOrUpdate(realmResults);
-                    Log.d("북 이미지 file", "file Realm 저장성공");
+                    book.setBook(realmResults);
                 }
             });
+            bookList.add(book);
             bookAdapter.notifyDataSetChanged();
         }
     }

@@ -1,6 +1,10 @@
-package com.memolease.realmtoy;
+package com.memolease.realmtoy.event;
 
-public class DeleteBookEvent {
+/**
+ * Created by bro on 2017-10-19.
+ */
+
+public class DeleteLibraryEvent {
     int id;
 
     public int getId() {

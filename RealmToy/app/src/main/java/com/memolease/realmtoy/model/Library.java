@@ -12,10 +12,24 @@ public class Library extends RealmObject {
     @PrimaryKey
     private int id;
 
-    private String name;
+    private String title;
     private int category;
     public RealmList<Book> bookRealmList;
     private int index;
+
+    //네비게이션 드로어에서 책장과 독서상태 목록을 나누기 위한 type값
+    int type;
+
+    int read_state;
+
+    //기본책장 값은 1, 개인이 추가 가능한 책장 값은 0으로 구분..!
+    // 0 default = 0, 내 기본 서재 = 1
+    int libType;
+
+    public Library() {
+        type = 0;
+    }
+
 
     public int getId() {
         return id;
@@ -25,12 +39,14 @@ public class Library extends RealmObject {
         this.id = id;
     }
 
-    public String getName() {
-        return name;
+    int bookCount;
+
+    public String getTitle() {
+        return title;
     }
 
-    public void setName(String name) {
-        this.name = name;
+    public void setTitle(String title) {
+        this.title = title;
     }
 
     public int getCategory() {
@@ -55,5 +71,37 @@ public class Library extends RealmObject {
 
     public void setIndex(int index) {
         this.index = index;
+    }
+
+    public int getRead_state() {
+        return read_state;
+    }
+
+    public void setRead_state(int read_state) {
+        this.read_state = read_state;
+    }
+
+    public int getBookCount() {
+        return bookCount;
+    }
+
+    public void setBookCount(int bookCount) {
+        this.bookCount = bookCount;
+    }
+
+    public int getType() {
+        return type;
+    }
+
+    public void setType(int type) {
+        this.type = type;
+    }
+
+    public int getLibType() {
+        return libType;
+    }
+
+    public void setLibType(int libType) {
+        this.libType = libType;
     }
 }

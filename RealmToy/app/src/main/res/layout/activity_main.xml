@@ -4,7 +4,7 @@
     android:id="@+id/drawer_layout"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context="com.memolease.realmtoy.MainActivity">
+    tools:context="com.memolease.realmtoy.activity.MainActivity">
 
     <RelativeLayout
         android:layout_width="match_parent"
@@ -18,7 +18,7 @@
 
     </RelativeLayout>
 
-<!--    <se.emilsjolander.stickylistheaders.StickyListHeadersListView
+    <se.emilsjolander.stickylistheaders.StickyListHeadersListView
         android:id="@+id/drawer_list"
         android:layout_width="240dp"
         android:layout_height="match_parent"
@@ -26,7 +26,13 @@
         android:choiceMode="singleChoice"
         android:divider="@android:color/transparent"
         android:dividerHeight="0dp"
-        android:background="#B2000000"/>-->
+        android:background="#B2000000"/>
+
+<!--    <include
+        layout="@layout/activity_draw_layout"
+        android:layout_width="wrap_content"
+        android:layout_height="match_parent"
+        />-->
 
 
 </android.support.v4.widget.DrawerLayout>

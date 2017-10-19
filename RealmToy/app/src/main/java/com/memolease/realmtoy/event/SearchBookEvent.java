@@ -1,10 +1,10 @@
-package com.memolease.realmtoy;
+package com.memolease.realmtoy.event;
 
 /**
  * Created by bro on 2017-08-18.
  */
 
-public class NextSearchBookEvent {
+public class SearchBookEvent {
     String query;
     int start;
 

@@ -1,4 +1,4 @@
-package com.memolease.realmtoy;
+package com.memolease.realmtoy.adapter;
 
 import android.content.Context;
 import android.content.Intent;
@@ -9,10 +9,8 @@ import android.view.ViewGroup;
 import android.widget.ImageView;
 
 import com.bumptech.glide.Glide;
-import com.bumptech.glide.load.engine.DiskCacheStrategy;
-import com.bumptech.glide.load.resource.drawable.GlideDrawable;
-import com.bumptech.glide.request.animation.GlideAnimation;
-import com.bumptech.glide.request.target.GlideDrawableImageViewTarget;
+import com.memolease.realmtoy.event.DeleteBookEvent;
+import com.memolease.realmtoy.R;
 import com.memolease.realmtoy.activity.BookDetailActivity;
 import com.memolease.realmtoy.model.Book;
 import com.memolease.realmtoy.util.BusProvider;
@@ -25,7 +23,7 @@ import java.util.List;
  */
 
 public class BookAdapter extends RecyclerView.Adapter<BookAdapter.BookViewHolder> {
-    Context mContext;
+    public Context mContext;
     //List<NaverBook> naverBookList;
     List<Book> bookList;
     public int bookSize = -1;
@@ -102,6 +100,7 @@ public class BookAdapter extends RecyclerView.Adapter<BookAdapter.BookViewHolder
                     //BusProvider.getInstance().post(bookList.get(getAdapterPosition()));
                     Intent detail = new Intent(context, BookDetailActivity.class);
                     detail.putExtra("id", book.getId());
+                    detail.putExtra("readState", book.getReadState());
                     detail.putExtra("title", book.getTitle());
                     detail.putExtra("author", book.getAuthor());
                     detail.putExtra("dedatil", makeBookDescription(book));

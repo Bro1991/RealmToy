@@ -1,9 +1,12 @@
-package com.memolease.realmtoy;
+package com.memolease.realmtoy.network;
+
+import com.memolease.realmtoy.event.ResponseBookSearchsEvent;
+import com.memolease.realmtoy.network.networkModel.Channel;
+import com.memolease.realmtoy.network.networkModel.NaverBook;
 
 import okhttp3.ResponseBody;
 import retrofit2.Call;
 import retrofit2.http.GET;
-import retrofit2.http.Header;
 import retrofit2.http.Path;
 import retrofit2.http.Query;
 
@@ -35,13 +38,13 @@ public interface BookApiService {
 
     @GET("/v1/search/{target}")
     Call<Channel> getChannel(@Path("target") String target,
-                               @Query("query") String query,
-                               @Query("display") int display,
-                               @Query("start") int start);
-
-    @GET("/v1/search/{target}")
-    Call<ResponseBookSearchsEvent> getResponseBook(@Path("target") String target,
                              @Query("query") String query,
                              @Query("display") int display,
                              @Query("start") int start);
+
+    @GET("/v1/search/{target}")
+    Call<ResponseBookSearchsEvent> getResponseBook(@Path("target") String target,
+                                                   @Query("query") String query,
+                                                   @Query("display") int display,
+                                                   @Query("start") int start);
 }

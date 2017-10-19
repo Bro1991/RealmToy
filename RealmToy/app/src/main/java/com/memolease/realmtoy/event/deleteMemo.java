@@ -1,4 +1,4 @@
-package com.memolease.realmtoy;
+package com.memolease.realmtoy.event;
 
 /**
  * Created by bro on 2017-09-22.

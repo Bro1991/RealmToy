@@ -1,14 +1,10 @@
 package com.memolease.realmtoy.model;
 
 
-import com.memolease.realmtoy.NaverBook;
-
-import java.io.File;
-import java.util.List;
+import com.memolease.realmtoy.network.networkModel.NaverBook;
 
 import io.realm.RealmList;
 import io.realm.RealmObject;
-import io.realm.annotations.Ignore;
 import io.realm.annotations.PrimaryKey;
 
 /**
@@ -32,6 +28,7 @@ public class Book extends RealmObject {
     private String description;
     int readState;
 
+    int libraryid;
     private String ImagePath;
     int rating;
     int index;
@@ -199,8 +196,18 @@ public class Book extends RealmObject {
         this.index = index;
     }
 
+    public int getLibraryid() {
+        return libraryid;
+    }
+
+    public void setLibraryid(int libraryid) {
+        this.libraryid = libraryid;
+    }
+
     public void setNaverBook(NaverBook naverBook) {
+        this.libraryid = naverBook.getLibraryid();
         this.title = naverBook.getTitle();
+        this.sub_title = naverBook.getSub_title();
         this.link = naverBook.getLink();
         this.ImageURL = naverBook.getImage();
         this.author = naverBook.getAuthor();
@@ -211,5 +218,25 @@ public class Book extends RealmObject {
         this.isbn = naverBook.getIsbn();
         this.isbn13 = naverBook.getIsbn13();
         this.description = naverBook.getDescription();
+        this.readState = naverBook.getReadState();
+    }
+
+    public void setBook(Book book) {
+        this.id = book.getId();
+        this.libraryid = book.getLibraryid();
+        this.title = book.getTitle();
+        this.sub_title = book.getSub_title();
+        this.link = book.getLink();
+        this.ImageURL = book.getImageURL();
+        this.ImagePath = book.getImagePath();
+        this.author = book.getAuthor();
+        this.discount = book.getDiscount();
+        this.price = book.getPrice();
+        this.publisher = book.getPublisher();
+        this.pubdate = book.getPubdate();
+        this.isbn = book.getIsbn();
+        this.isbn13 = book.getIsbn13();
+        this.description = book.getDescription();
+        this.readState = book.getReadState();
     }
 }

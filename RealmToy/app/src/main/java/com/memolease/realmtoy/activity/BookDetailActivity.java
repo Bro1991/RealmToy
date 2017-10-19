@@ -2,28 +2,24 @@ package com.memolease.realmtoy.activity;
 
 import android.content.Intent;
 import android.graphics.Color;
-import android.os.Environment;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
-import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ImageView;
+import android.widget.RadioButton;
 import android.widget.RadioGroup;
 import android.widget.TextView;
 
 import com.bumptech.glide.Glide;
-import com.bumptech.glide.load.resource.drawable.GlideDrawable;
-import com.bumptech.glide.request.animation.GlideAnimation;
-import com.bumptech.glide.request.target.GlideDrawableImageViewTarget;
-import com.memolease.realmtoy.BookAdapter;
-import com.memolease.realmtoy.EditMemoEvent;
-import com.memolease.realmtoy.MemoAdapter;
+import com.memolease.realmtoy.event.EditMemoEvent;
+import com.memolease.realmtoy.adapter.MemoAdapter;
+import com.memolease.realmtoy.event.PutChangeStateBookEvent;
 import com.memolease.realmtoy.R;
-import com.memolease.realmtoy.deleteMemo;
+import com.memolease.realmtoy.event.deleteMemo;
 import com.memolease.realmtoy.model.Book;
 import com.memolease.realmtoy.model.Memo;
 import com.memolease.realmtoy.util.BusProvider;
@@ -31,13 +27,9 @@ import com.squareup.otto.Bus;
 import com.squareup.otto.Subscribe;
 
 import java.io.File;
-import java.text.NumberFormat;
-import java.util.ArrayList;
-import java.util.List;
 
 import io.realm.Realm;
 import io.realm.RealmList;
-import io.realm.RealmResults;
 
 public class BookDetailActivity extends AppCompatActivity {
     ImageView mBookImageView;
@@ -48,6 +40,7 @@ public class BookDetailActivity extends AppCompatActivity {
     TextView textView4;
     Button mAddMemoButton;
     RadioGroup mBookStateGroup;
+    RadioButton bookStateSeg_1, bookStateSeg_2, bookStateSeg_3, bookStateSeg_4;
     Book mBook;
     Bus mBus = BusProvider.getInstance();
     Realm realm;
@@ -59,6 +52,7 @@ public class BookDetailActivity extends AppCompatActivity {
     MemoAdapter memoAdapter;
     //String ids = getIntent().getStringExtra("id");
     int id;
+    int readState;
 
 
     @Override
@@ -68,6 +62,7 @@ public class BookDetailActivity extends AppCompatActivity {
         realm = Realm.getDefaultInstance();
         mBus.register(this);
         id = getIntent().getExtras().getInt("id");
+        readState = getIntent().getExtras().getInt("readState");
         //id = getIntent().getIntExtra("id", 1);
 
         Log.d("가져온 ID 값", String.valueOf(id));
@@ -98,9 +93,7 @@ public class BookDetailActivity extends AppCompatActivity {
     }
 
     private void getbook() {
-        //mBook = realm.where(Book.class).equalTo("id", id).findFirst();
-
-        String[] chunks = mBook.getTitle().split("\\(");
+/*        String[] chunks = mBook.getTitle().split("\\(");
         if (chunks.length > 1) {
             String[] afterChunks = chunks[1].split("\\)");
 
@@ -112,8 +105,32 @@ public class BookDetailActivity extends AppCompatActivity {
         } else {
             mTitleParse.setVisibility(View.GONE);
             mTitleView.setText(mBook.getTitle());
+        }*/
+
+        if (mBook.getSub_title() == null) {
+            mTitleParse.setVisibility(View.GONE);
+            mTitleView.setText(mBook.getTitle());
+        } else {
+            mTitleParse.setVisibility(View.VISIBLE);
+            mTitleParse.setText(mBook.getSub_title());
+            mTitleView.setText(mBook.getTitle());
         }
-        textView4.setText(mBook.getImageURL());
+
+        switch (mBook.getReadState()) {
+            case 1 :
+                bookStateSeg_1.setChecked(true);
+                break;
+            case 2 :
+                bookStateSeg_2.setChecked(true);
+                break;
+            case 3 :
+                bookStateSeg_3.setChecked(true);
+                break;
+            case 4 :
+                bookStateSeg_4.setChecked(true);
+                break;
+        }
+
         mAuthorView.setText(mBook.getAuthor());
         mDescriptionView.setText(makeBookDescription(mBook));
 /*        Glide.with(mBookImageView.getContext())
@@ -129,7 +146,6 @@ public class BookDetailActivity extends AppCompatActivity {
         //File file = new File(getFilesDir().getPath() + mBook.getImage_path());
         File file = new File(mBook.getImagePath());
         Log.d("파일경로", file.getPath());
-        //File file = new File(mBook.getImage_path());
         Glide.with(mBookImageView.getContext())
                 .load(file)
                 .into(mBookImageView);
@@ -164,39 +180,39 @@ public class BookDetailActivity extends AppCompatActivity {
         });
 
         mBookStateGroup = (RadioGroup) findViewById(R.id.bookStateGroup);
+        bookStateSeg_1 = (RadioButton) findViewById(R.id.bookStateSeg_1);
+        bookStateSeg_2 = (RadioButton) findViewById(R.id.bookStateSeg_2);
+        bookStateSeg_3 = (RadioButton) findViewById(R.id.bookStateSeg_3);
+        bookStateSeg_4 = (RadioButton) findViewById(R.id.bookStateSeg_4);
 
-    }
+        mBookStateGroup.setOnCheckedChangeListener(new RadioGroup.OnCheckedChangeListener() {
+            public void onCheckedChanged(RadioGroup group, int checkedId) {
+                PutChangeStateBookEvent event = new PutChangeStateBookEvent();
+                event.setBookid(id);
+                int selectedIdx = 0;
+                switch (checkedId) {
+                    case R.id.bookStateSeg_1:
+                        selectedIdx = 1;
+                        break;
 
+                    case R.id.bookStateSeg_2:
+                        selectedIdx = 2;
+                        break;
 
-/*    @Subscribe
-    public void getDetailbook(Book book) {
-        this.mBook = book;
-        Log.d("받아온 book", book.getTitle());
-        Log.d("받아온 book", "받았니?");
-        String[] chunks = book.getTitle().split("\\(");
-        if (chunks.length > 1) {
-            String[] afterChunks = chunks[1].split("\\)");
+                    case R.id.bookStateSeg_3:
+                        selectedIdx = 3;
+                        break;
 
-            if (afterChunks.length == 1) {
-                mTitleParse.setVisibility(View.VISIBLE);
-                mTitleParse.setText("- " + afterChunks[0]);
-                mTitleView.setText(chunks[0]);
+                    case R.id.bookStateSeg_4:
+                        selectedIdx = 4;
+                        break;
+                }
+
+                event.setReadState(selectedIdx);
+                mBus.post(event);
             }
-        }
-
-        Glide.with(mBookImageView.getContext())
-                .load(book.getImage())
-                .into(new GlideDrawableImageViewTarget(mBookImageView) {
-                    @Override
-                    public void onResourceReady(GlideDrawable drawable, GlideAnimation anim) {
-                        super.onResourceReady(drawable, null);
-                        mBookImageView.setScaleType(ImageView.ScaleType.MATRIX);
-                    }
-                });
-
-        mAuthorView.setText(book.getAuthor());
-        mDescriptionView.setText(makeBookDescription(book));
-    }*/
+        });
+    }
 
     @Subscribe
     public void getMemo(final Memo memo) {
@@ -212,8 +228,6 @@ public class BookDetailActivity extends AppCompatActivity {
                 }
                 memo.setBookid(id);
                 memo.setId(nextId);
-                //Memo memo = realm.where(Memo.class).eq
-                //Number currentIdNum = realm.where(Memo.class).equalTo()
                 mBook.memoList.add(memo);
             }
         });
@@ -241,6 +255,19 @@ public class BookDetailActivity extends AppCompatActivity {
         //memo.setContent(editMemoEvent.getContent());
         //memo.setUpdatedAt(editMemoEvent.getUpdatedAt());
         memoAdapter.notifyItemChanged(editMemoEvent.getPosition());
+    }
+
+    @Subscribe
+    public void editReadState(final PutChangeStateBookEvent event) {
+        realm.executeTransaction(new Realm.Transaction() {
+            @Override
+            public void execute(Realm realm) {
+                Book book = realm.where(Book.class).equalTo("id", event.getBookid()).findFirst();
+                book.setReadState(event.getReadState());
+                realm.copyToRealmOrUpdate(book);
+            }
+        });
+
     }
 
     private String makeBookDescription(Book book) {

@@ -1,4 +1,4 @@
-package com.memolease.realmtoy;
+package com.memolease.realmtoy.network.networkModel;
 
 import com.google.gson.annotations.Expose;
 import com.google.gson.annotations.SerializedName;
@@ -55,6 +55,36 @@ public class NaverBook{
     @SerializedName("description")
     @Expose
     private String description;
+
+    private boolean exist_state;
+
+    int readState;
+
+    int libraryid;
+
+    public int getLibraryid() {
+        return libraryid;
+    }
+
+    public void setLibraryid(int libraryid) {
+        this.libraryid = libraryid;
+    }
+
+    public int getReadState() {
+        return readState;
+    }
+
+    public void setReadState(int readState) {
+        this.readState = readState;
+    }
+
+    public boolean getExist_state() {
+        return exist_state;
+    }
+
+    public void setExist_state(boolean exist_state) {
+        this.exist_state = exist_state;
+    }
 
     public int getId() {
         return id;

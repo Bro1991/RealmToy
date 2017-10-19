@@ -1,4 +1,4 @@
-package com.memolease.realmtoy;
+package com.memolease.realmtoy.event;
 
 /**
  * Created by bro on 2017-10-17.
@@ -15,11 +15,6 @@ public class AddBookImageEvent {
     public AddBookImageEvent(int bookid, String imagePath) {
         this.imagePath = imagePath;
         this.bookid = bookid;
-    }
-
-    public AddBookImageEvent(String isbn, String imagePath) {
-        this.isbn = isbn;
-        this.imagePath = imagePath;
     }
 
     public String getIsbn() {

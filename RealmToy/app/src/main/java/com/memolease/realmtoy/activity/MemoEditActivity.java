@@ -9,7 +9,7 @@ import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
 import android.widget.EditText;
 
-import com.memolease.realmtoy.EditMemoEvent;
+import com.memolease.realmtoy.event.EditMemoEvent;
 import com.memolease.realmtoy.R;
 import com.memolease.realmtoy.model.Memo;
 import com.memolease.realmtoy.util.BusProvider;

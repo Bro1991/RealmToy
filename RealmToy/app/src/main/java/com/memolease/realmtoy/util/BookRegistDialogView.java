@@ -1,4 +1,4 @@
-package com.memolease.realmtoy;
+package com.memolease.realmtoy.util;
 
 import android.content.Context;
 import android.graphics.Color;
@@ -15,6 +15,9 @@ import com.bumptech.glide.load.engine.DiskCacheStrategy;
 import com.bumptech.glide.load.resource.drawable.GlideDrawable;
 import com.bumptech.glide.request.animation.GlideAnimation;
 import com.bumptech.glide.request.target.GlideDrawableImageViewTarget;
+import com.memolease.realmtoy.R;
+import com.memolease.realmtoy.network.networkModel.NaverBook;
+
 import org.jsoup.Jsoup;
 
 public class BookRegistDialogView extends LinearLayout {

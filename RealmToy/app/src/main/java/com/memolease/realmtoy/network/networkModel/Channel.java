@@ -1,16 +1,15 @@
-package com.memolease.realmtoy;
+package com.memolease.realmtoy.network.networkModel;
 
 import com.google.gson.annotations.Expose;
 import com.google.gson.annotations.SerializedName;
 
-import java.util.ArrayList;
 import java.util.List;
 
 /**
  * Created by bro on 2017-08-17.
  */
 
-public class ResponseBookSearchsEvent {
+public class Channel {
     @SerializedName("lastBuildDate")
     @Expose
     private String lastBuildDate;
@@ -25,7 +24,7 @@ public class ResponseBookSearchsEvent {
     private Integer display;
     @SerializedName("items")
     @Expose
-    private ArrayList<NaverBook> naverBookList = null;
+    private List<NaverBook> naverBookList = null;
 
     public String getLastBuildDate() {
         return lastBuildDate;
@@ -59,11 +58,11 @@ public class ResponseBookSearchsEvent {
         this.display = display;
     }
 
-    public ArrayList<NaverBook> getItems() {
+    public List<NaverBook> getItems() {
         return naverBookList;
     }
 
-    public void setItems(ArrayList<NaverBook> naverBookList) {
+    public void setItems(List<NaverBook> naverBookList) {
         this.naverBookList = naverBookList;
     }
 }

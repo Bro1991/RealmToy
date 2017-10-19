@@ -1,4 +1,4 @@
-package com.memolease.realmtoy;
+package com.memolease.realmtoy.activity;
 
 import android.content.Context;
 import android.support.v7.app.AppCompatActivity;
@@ -11,6 +11,17 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 
+import com.memolease.realmtoy.R;
+import com.memolease.realmtoy.adapter.SearchAdapter;
+import com.memolease.realmtoy.event.NextSearchBookEvent;
+import com.memolease.realmtoy.event.ResponseBookSearchsEvent;
+import com.memolease.realmtoy.event.SearchBookEvent;
+import com.memolease.realmtoy.model.Book;
+import com.memolease.realmtoy.network.BookApiService;
+import com.memolease.realmtoy.network.LoggingIntercepter;
+import com.memolease.realmtoy.network.NApiInterceptor;
+import com.memolease.realmtoy.network.networkModel.Channel;
+import com.memolease.realmtoy.network.networkModel.NaverBook;
 import com.memolease.realmtoy.util.BusProvider;
 import com.squareup.otto.Bus;
 import com.squareup.otto.Subscribe;
@@ -37,12 +48,15 @@ public class SearchBookActivity extends AppCompatActivity {
     int startIndex = 1;
     Bus mBus = BusProvider.getInstance();
     public static Context mContext;
+    //private Realm realm;
+    List<Book> bookList = new ArrayList<>();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_search_book);
         mContext = this;
+        //realm = Realm.getDefaultInstance();
         initRetrofit();
         initUI();
         initRecycler();
@@ -176,7 +190,6 @@ public class SearchBookActivity extends AppCompatActivity {
                 Log.d("에러", t.toString());
             }
         });
-
     }
 
     @Subscribe
@@ -189,6 +202,33 @@ public class SearchBookActivity extends AppCompatActivity {
         }
 
     }
+/*
+
+    private void existCheck(List<NaverBook> naverBookList) {
+        bookList = initRealm();
+
+        if (naverBookList.get(0).getIsbn13().equals(bookList.get(0)));
+
+    }
+*/
+
+/*
+
+    //추후 책 검색시에 서재에 등록되어있으면 check를 해주기위해 필요
+    private List<Book> initRealm() {
+        List<Book> getBook = new ArrayList<>();
+        RealmResults<Book> books = realm.where(Book.class).findAll();
+        if (books.size() != 0) {
+            for (Book book : books) {
+                getBook.add(book);
+            }
+            return getBook;
+        } else {
+            getBook.clear();
+        }
+         return getBook;
+    }
+*/
 
     private List<NaverBook> fetchResults(retrofit2.Response<Channel> response) {
         Channel channel = response.body();

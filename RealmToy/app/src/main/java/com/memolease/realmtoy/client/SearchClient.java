@@ -2,13 +2,12 @@ package com.memolease.realmtoy.client;
 
 import android.util.Log;
 
-import com.memolease.realmtoy.BookApiService;
-import com.memolease.realmtoy.LoggingIntercepter;
-import com.memolease.realmtoy.NApiInterceptor;
-import com.memolease.realmtoy.NaverBook;
-import com.memolease.realmtoy.NextSearchBookEvent;
-import com.memolease.realmtoy.ResponseBookSearchsEvent;
-import com.memolease.realmtoy.SearchBookEvent;
+import com.memolease.realmtoy.network.BookApiService;
+import com.memolease.realmtoy.network.LoggingIntercepter;
+import com.memolease.realmtoy.network.NApiInterceptor;
+import com.memolease.realmtoy.event.NextSearchBookEvent;
+import com.memolease.realmtoy.event.ResponseBookSearchsEvent;
+import com.memolease.realmtoy.event.SearchBookEvent;
 import com.memolease.realmtoy.util.BusProvider;
 import com.squareup.otto.Bus;
 import com.squareup.otto.Subscribe;
