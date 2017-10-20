@@ -28,9 +28,6 @@ public class Book extends RealmObject {
     private String description;
     int readState;
 
-    String createAt;
-
-
     int libraryid;
     private String ImagePath;
     int rating;
@@ -207,15 +204,8 @@ public class Book extends RealmObject {
         this.libraryid = libraryid;
     }
 
-    public String getCreateAt() {
-        return createAt;
-    }
-
-    public void setCreateAt(String createAt) {
-        this.createAt = createAt;
-    }
-
     public void setNaverBook(NaverBook naverBook) {
+        this.libraryid = naverBook.getLibraryid();
         this.title = naverBook.getTitle();
         this.sub_title = naverBook.getSub_title();
         this.link = naverBook.getLink();

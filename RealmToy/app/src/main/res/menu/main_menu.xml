@@ -3,31 +3,9 @@
     xmlns:app="http://schemas.android.com/apk/res-auto">
 
     <item
-        android:id="@+id/move_book"
-        android:title="이동"
-        app:showAsAction="always" />
-
-    <item
-        android:id="@+id/menu_toggle_library_editMode"
-        android:title="편집"
-        app:showAsAction="always" />
-
-    <item
-        android:id="@+id/menu_add_library_newBook"
-        android:icon="@drawable/ic_add_white_36dp"
-        android:title="삭제"
-        app:showAsAction="always" />
-
-    <item
-        android:id="@+id/menu_toggle_editMode"
-        android:title="편집"
-        app:showAsAction="always" />
-
-    <item
         android:id="@+id/add_book"
         android:title="추가"
-        android:icon="@drawable/ic_add_white_36dp"
+        android:icon="@drawable/ic_add"
         app:showAsAction="always"/>
-
 
 </menu>

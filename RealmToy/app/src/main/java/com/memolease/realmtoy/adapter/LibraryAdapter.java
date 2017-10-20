@@ -20,7 +20,6 @@ import com.memolease.realmtoy.R;
 import com.memolease.realmtoy.event.CreateLibraryEvent;
 import com.memolease.realmtoy.event.DeleteLibraryEvent;
 import com.memolease.realmtoy.event.EditLibraryEvent;
-import com.memolease.realmtoy.model.Book;
 import com.memolease.realmtoy.model.Library;
 import com.memolease.realmtoy.util.BusProvider;
 import com.squareup.otto.Bus;
@@ -29,7 +28,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
-import io.realm.Realm;
 import io.realm.RealmList;
 import io.realm.RealmResults;
 import se.emilsjolander.stickylistheaders.StickyListHeadersAdapter;
@@ -43,7 +41,6 @@ public class LibraryAdapter extends BaseAdapter implements StickyListHeadersAdap
     LayoutInflater inflater;
     Context context;
     Bus mBus = BusProvider.getInstance();
-    Realm realm;
 
     public Boolean editMode = false;
 
@@ -52,7 +49,7 @@ public class LibraryAdapter extends BaseAdapter implements StickyListHeadersAdap
     Library now;
     Library after;
 
-    public LibraryAdapter(Context context, List<Library> libraryList, Realm realm) {
+    public LibraryAdapter(Context context, List<Library> libraryList) {
         inflater = LayoutInflater.from(context);
         this.context = context;
         this.items = libraryList;
@@ -76,8 +73,6 @@ public class LibraryAdapter extends BaseAdapter implements StickyListHeadersAdap
         this.after.setTitle("다 읽음");
         this.after.setType(1);
         this.after.setRead_state(4);
-
-        this.realm = realm;
     }
 
     public void updateStateLibraryCount(HashMap<String, Integer> count) {
@@ -88,6 +83,7 @@ public class LibraryAdapter extends BaseAdapter implements StickyListHeadersAdap
 
         notifyDataSetChanged();
     }
+
 
     @Override
     public long getHeaderId(int position) {
@@ -139,7 +135,6 @@ public class LibraryAdapter extends BaseAdapter implements StickyListHeadersAdap
     public View getView(int position, View convertView, ViewGroup parent) {
         ViewHolder holder;
         Log.d("getVIew", "getview 시작");
-
         if (convertView == null) {
             holder = new ViewHolder();
             convertView = inflater.inflate(R.layout.library_item, parent, false);
@@ -160,30 +155,11 @@ public class LibraryAdapter extends BaseAdapter implements StickyListHeadersAdap
             Log.d("getVIew", "getview 뷰 이미 있음");
             holder = (ViewHolder) convertView.getTag();
         }
+
         Log.d("getVIew", "getview 시작");
         final Library thisLibrary = items.get(position);
-
-        if (items.get(position).getLibType() == 1) {
-            RealmResults<Book> bookRealmResults = realm.where(Book.class).equalTo("libraryid", thisLibrary.getId()).findAll();
-            Log.d("디비에서 가져온 갯수", String.valueOf(bookRealmResults.size()));
-            holder.text.setText(thisLibrary.getTitle()+"("+bookRealmResults.size()+")");
-        } else {
-            RealmResults<Book> readstateRealmResults = realm.where(Book.class).equalTo("readState", thisLibrary.getRead_state()).findAll();
-            holder.text.setText(thisLibrary.getTitle()+"("+readstateRealmResults.size()+")");
-        }
-
-/*        if (bookRealmResults.size() != 0) {
-            holder.text.setText(thisLibrary.getTitle()+"("+bookRealmResults.size()+")");
-        } else {
-            holder.text.setText(thisLibrary.getTitle()+"("+ 0 +")");
-        }*/
-
-
-
-
-
-
-        //holder.text.setText(thisLibrary.getTitle()+"("+thisLibrary.getBookCount()+")");
+        Log.d("가져온 라이브러리", thisLibrary.getTitle());
+        holder.text.setText(thisLibrary.getTitle());
 
         if (thisLibrary.getType() == 0) {
             if (thisLibrary.getLibType() == 0) {
@@ -369,9 +345,27 @@ public class LibraryAdapter extends BaseAdapter implements StickyListHeadersAdap
             items.clear();
     }
 
+    public void addItems(ArrayList<Library> newItems) {
+        for (Library item : newItems)
+            items.add(item);
+
+        items.add(wantto);
+        items.add(before);
+        items.add(now);
+        items.add(after);
+
+        notifyDataSetChanged();
+    }
+
     public void addrealmItems(RealmResults<Library> newItems) {
         for (Library item : newItems)
             items.add(item);
+
+        items.add(wantto);
+        items.add(before);
+        items.add(now);
+        items.add(after);
+
         notifyDataSetChanged();
     }
 
