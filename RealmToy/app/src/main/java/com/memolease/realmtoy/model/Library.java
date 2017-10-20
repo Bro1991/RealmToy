@@ -1,5 +1,7 @@
 package com.memolease.realmtoy.model;
 
+import java.util.Date;
+
 import io.realm.RealmList;
 import io.realm.RealmObject;
 import io.realm.annotations.PrimaryKey;
@@ -25,6 +27,10 @@ public class Library extends RealmObject {
     //기본책장 값은 1, 개인이 추가 가능한 책장 값은 0으로 구분..!
     // 0 default = 0, 내 기본 서재 = 1
     int libType;
+    Date createAt;
+    Date updatedAt;
+    int bookCount;
+
 
     public Library() {
         type = 0;
@@ -39,7 +45,6 @@ public class Library extends RealmObject {
         this.id = id;
     }
 
-    int bookCount;
 
     public String getTitle() {
         return title;
@@ -103,5 +108,21 @@ public class Library extends RealmObject {
 
     public void setLibType(int libType) {
         this.libType = libType;
+    }
+
+    public Date getCreateAt() {
+        return createAt;
+    }
+
+    public void setCreateAt(Date createAt) {
+        this.createAt = createAt;
+    }
+
+    public Date getUpdatedAt() {
+        return updatedAt;
+    }
+
+    public void setUpdatedAt(Date updatedAt) {
+        this.updatedAt = updatedAt;
     }
 }

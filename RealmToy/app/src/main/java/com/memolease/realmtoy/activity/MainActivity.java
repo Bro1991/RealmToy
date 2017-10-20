@@ -44,7 +44,9 @@ import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.net.URLEncoder;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 import io.realm.Realm;
@@ -66,6 +68,7 @@ public class MainActivity extends AppCompatActivity {
     GridLayoutManager mLayoutManager;
     Context mContext;
     //File root = getFilesDir().getAbsoluteFile();
+    Menu mMenu;
 
     private final String SAVE_FOLDER = "/RealmToy_Backup";
     private final String SAVE_BOOK_COVER = "/book_cover";
@@ -157,6 +160,7 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onDrawerOpened(View drawerView) {
                 super.onDrawerOpened(drawerView);
+                libraryAdapter.notifyDataSetChanged();
                 //onlyDismissMenu();
                 //mBus.post(event);
             }
@@ -189,8 +193,11 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-        libraryAdapter = new LibraryAdapter(this, libraryList);
+        libraryAdapter = new LibraryAdapter(this, libraryList, realm);
         mLibraryListView.setAdapter(libraryAdapter);
+        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+        mDrawerToggle.setDrawerIndicatorEnabled(true);
+        mDrawerLayout.setDrawerLockMode(DrawerLayout.LOCK_MODE_UNLOCKED);
     }
 
 
@@ -220,7 +227,9 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void initBookRealm() {
-        RealmResults<Book> books = realm.where(Book.class).equalTo("libraryid", 1).findAll();
+        int id =1;
+        RealmResults<Book> books = realm.where(Book.class).equalTo("libraryid", id).findAll();
+        //RealmResults<Book> books = realm.where(Book.class).findAll();
         if (books.size() != 0) {
             for (Book book : books) {
                 bookList.add(book);
@@ -244,14 +253,62 @@ public class MainActivity extends AppCompatActivity {
         if (libraryRealmResults.size() == 0) {
             Log.d("서재가 없다", "서재를 생성합니다");
             final Library library = new Library();
+            final Library wantto = new Library();
+            final Library before = new Library();
+            final Library now = new Library();
+            final Library after = new Library();
             realm.executeTransaction(new Realm.Transaction() {
                 @Override
                 public void execute(Realm realm) {
+
+                    long nowTime = System.currentTimeMillis();
+                    Date date = new Date(nowTime);
                     library.setTitle("내 기본 서재");
                     library.setId(1);
                     library.setType(0);
                     library.setLibType(1);
+                    library.setCreateAt(date);
                     realm.copyToRealm(library);
+
+                    long nowTime2 = System.currentTimeMillis();
+                    Date date2 = new Date(nowTime2);
+                    wantto.setId(2);
+                    wantto.setTitle("구입희망");
+                    wantto.setType(1);
+                    wantto.setLibType(0);
+                    wantto.setRead_state(1);
+                    wantto.setCreateAt(date2);
+                    realm.copyToRealm(wantto);
+
+                    long nowTime3 = System.currentTimeMillis();
+                    Date date3 = new Date(nowTime3);
+                    before.setCreateAt(date3);
+                    before.setId(3);
+                    before.setTitle("읽을 예정");
+                    before.setType(1);
+                    before.setLibType(0);
+                    before.setRead_state(2);
+                    realm.copyToRealm(before);
+
+                    long nowTime4 = System.currentTimeMillis();
+                    Date date4 = new Date(nowTime4);
+                    now.setCreateAt(date4);
+                    now.setId(4);
+                    now.setTitle("읽는 중");
+                    now.setType(1);
+                    now.setLibType(0);
+                    now.setRead_state(3);
+                    realm.copyToRealm(now);
+
+                    long nowTime5 = System.currentTimeMillis();
+                    Date date5 = new Date(nowTime5);
+                    after.setCreateAt(date5);
+                    after.setId(5);
+                    after.setTitle("다 읽음");
+                    after.setType(1);
+                    after.setLibType(0);
+                    after.setRead_state(4);
+                    realm.copyToRealm(after);
                     Log.d("기본 서재 생성", "기본서재 생성 성공");
                 }
             });
@@ -260,11 +317,6 @@ public class MainActivity extends AppCompatActivity {
             libraryAdapter.addrealmItems(libraryRealmResults);
             Log.d("라이브러리 데이터 업데이트", "업데이트 성공");
         } else {
-            /*for (Library library : libraryRealmResults) {
-                libraryList.add(library);
-
-            }
-            libraryAdapter.notifyDataSetChanged();*/
             libraryAdapter.refresh();
             libraryAdapter.addrealmItems(libraryRealmResults);
             mLibraryListView.setAdapter(libraryAdapter);
@@ -338,6 +390,20 @@ public class MainActivity extends AppCompatActivity {
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         getMenuInflater().inflate(R.menu.main_menu, menu);
+        this.mMenu = menu;
+        mMenu.findItem(R.id.move_book).setVisible(false);
+        mMenu.findItem(R.id.menu_toggle_library_editMode).setVisible(false);
+        mMenu.findItem(R.id.menu_add_library_newBook).setVisible(false);
+        mMenu.findItem(R.id.menu_toggle_editMode).setVisible(false);
+        mMenu.findItem(R.id.add_book).setOnMenuItemClickListener(new MenuItem.OnMenuItemClickListener() {
+            @Override
+            public boolean onMenuItemClick(MenuItem item) {
+                /*mBus.post(new EditModeActionEvent());*/
+                addNewBook();
+                return false;
+            }
+        });
+
         return super.onCreateOptionsMenu(menu);
     }
 
@@ -363,13 +429,13 @@ public class MainActivity extends AppCompatActivity {
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        switch (item.getItemId()) {
-            case android.R.id.home:
-                finish();
-                return true;
+/*        switch (item.getItemId()) {
             case R.id.add_book:
                 addNewBook();
                 return true;
+        }*/
+        if (mDrawerToggle.onOptionsItemSelected(item)) {
+            return true;
         }
         return super.onOptionsItemSelected(item);
     }
@@ -418,6 +484,7 @@ public class MainActivity extends AppCompatActivity {
                     nextId = currentIdNum.intValue() + 1;
                 }
                 book.setId(nextId);
+                book.setLibraryid(1);
                 book.setNaverBook(naverBook);
 /*
                 //다운로드 경로를 지정
@@ -727,6 +794,7 @@ public class MainActivity extends AppCompatActivity {
             });
             bookList.add(book);
             bookAdapter.notifyDataSetChanged();
+            libraryAdapter.notifyDataSetChanged();
         }
     }
 }
