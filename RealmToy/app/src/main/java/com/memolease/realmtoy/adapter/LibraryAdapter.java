@@ -178,11 +178,6 @@ public class LibraryAdapter extends BaseAdapter implements StickyListHeadersAdap
             holder.text.setText(thisLibrary.getTitle()+"("+ 0 +")");
         }*/
 
-
-
-
-
-
         //holder.text.setText(thisLibrary.getTitle()+"("+thisLibrary.getBookCount()+")");
 
         if (thisLibrary.getType() == 0) {
@@ -308,6 +303,7 @@ public class LibraryAdapter extends BaseAdapter implements StickyListHeadersAdap
                     }
 
                     editMode = toggleLibraryBtn(editMode);
+                    Log.d("EditMode상태 확인", String.valueOf(editMode));
                     notifyDataSetChanged();
                 }
             });
@@ -332,6 +328,7 @@ public class LibraryAdapter extends BaseAdapter implements StickyListHeadersAdap
                                     String title = dialog.getInputEditText().getText().toString();
                                     CreateLibraryEvent event = new CreateLibraryEvent();
                                     event.setTitle(title);
+                                    event.setType(0);
                                     event.setLibType(0);
                                     mBus.post(event);
                                 }
@@ -382,6 +379,20 @@ public class LibraryAdapter extends BaseAdapter implements StickyListHeadersAdap
     public void setContext(Context context) {
         this.context = context;
     }
+
+    public int removeItem(int modelId) {
+        for (Library library : items){
+            if (library.getId() == modelId) {
+                int position = items.indexOf(library);
+                items.remove(position);
+
+                notifyDataSetChanged();
+                break;
+            }
+        }
+        return -1;
+    }
+
 
 }
 

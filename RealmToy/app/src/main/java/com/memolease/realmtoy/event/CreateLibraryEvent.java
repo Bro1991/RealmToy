@@ -7,6 +7,7 @@ package com.memolease.realmtoy.event;
 public class CreateLibraryEvent {
     String title;
     int libType; // 0 default, 1 내 기본 서재
+    int type;
 
 
     public String getTitle() {
@@ -23,5 +24,13 @@ public class CreateLibraryEvent {
 
     public void setLibType(int libType) {
         this.libType = libType;
+    }
+
+    public int getType() {
+        return type;
+    }
+
+    public void setType(int type) {
+        this.type = type;
     }
 }

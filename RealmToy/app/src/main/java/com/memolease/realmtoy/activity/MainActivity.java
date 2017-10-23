@@ -6,23 +6,29 @@ import android.content.Intent;
 import android.os.AsyncTask;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
+import android.support.v7.app.ActionBar;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.AdapterView;
+import android.widget.Toast;
 
 import com.memolease.realmtoy.R;
 import com.memolease.realmtoy.adapter.BookAdapter;
 import com.memolease.realmtoy.adapter.LibraryAdapter;
 import com.memolease.realmtoy.event.AddBookImageEvent;
+import com.memolease.realmtoy.event.CreateLibraryEvent;
 import com.memolease.realmtoy.event.DeleteBookEvent;
+import com.memolease.realmtoy.event.DeleteLibraryEvent;
+import com.memolease.realmtoy.event.EditLibraryEvent;
 import com.memolease.realmtoy.model.Book;
 import com.memolease.realmtoy.model.Library;
 import com.memolease.realmtoy.model.Memo;
@@ -51,6 +57,7 @@ import java.util.List;
 
 import io.realm.Realm;
 import io.realm.RealmResults;
+import io.realm.Sort;
 import se.emilsjolander.stickylistheaders.StickyListHeadersListView;
 
 
@@ -64,6 +71,7 @@ public class MainActivity extends AppCompatActivity {
     ActionBarDrawerToggle mDrawerToggle;
     StickyListHeadersListView mLibraryListView;
     LibraryAdapter libraryAdapter;
+    Toolbar toolbar;
 
     GridLayoutManager mLayoutManager;
     Context mContext;
@@ -97,6 +105,7 @@ public class MainActivity extends AppCompatActivity {
         createDirectoryFolder();
         initRecycler();
         drawerLayoutInit();
+        //initToolbar();
         initLibraryRealm();
         initBookRealm();
 
@@ -195,9 +204,18 @@ public class MainActivity extends AppCompatActivity {
 
         libraryAdapter = new LibraryAdapter(this, libraryList, realm);
         mLibraryListView.setAdapter(libraryAdapter);
+        initToolbar();
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         mDrawerToggle.setDrawerIndicatorEnabled(true);
         mDrawerLayout.setDrawerLockMode(DrawerLayout.LOCK_MODE_UNLOCKED);
+    }
+
+    private void initToolbar() {
+        toolbar = (Toolbar) findViewById(R.id.toolbar);
+        setSupportActionBar(toolbar);
+        getSupportActionBar().setDisplayShowTitleEnabled(false);
+        getSupportActionBar().setDisplayShowCustomEnabled(true); //커스터마이징 하기 위해 필요
+        //getSupportActionBar().setDisplayHomeAsUpEnabled(false); // 뒤로가기 버튼, 디폴트로 true만 해도 백버튼이 생김
     }
 
 
@@ -227,7 +245,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void initBookRealm() {
-        int id =1;
+        int id = 1;
         RealmResults<Book> books = realm.where(Book.class).equalTo("libraryid", id).findAll();
         //RealmResults<Book> books = realm.where(Book.class).findAll();
         if (books.size() != 0) {
@@ -249,7 +267,8 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void initLibraryRealm() {
-        RealmResults<Library> libraryRealmResults = realm.where(Library.class).findAll();
+        //RealmResults<Library> libraryRealmResults = realm.where(Library.class).findAllSorted("type", Sort.DESCENDING);
+        RealmResults<Library> libraryRealmResults = realm.where(Library.class).findAllSorted("type");
         if (libraryRealmResults.size() == 0) {
             Log.d("서재가 없다", "서재를 생성합니다");
             final Library library = new Library();
@@ -400,7 +419,8 @@ public class MainActivity extends AppCompatActivity {
             public boolean onMenuItemClick(MenuItem item) {
                 /*mBus.post(new EditModeActionEvent());*/
                 addNewBook();
-                return false;
+                //return false;
+                return true;
             }
         });
 
@@ -527,6 +547,73 @@ public class MainActivity extends AppCompatActivity {
         //bookAdapter.bookSize = naverBookArrayList.size();
         bookAdapter.bookSize = bookList.size();
         bookAdapter.notifyDataSetChanged();
+    }
+
+    @Subscribe
+    public void addLibrary(final CreateLibraryEvent createLibraryEvent) {
+        //final Book book = new Book();
+        final Library addLibrary = new Library();
+        realm.executeTransaction(new Realm.Transaction() {
+            @Override
+            public void execute(Realm realm) {
+                Number currentIdNum = realm.where(Library.class).max("id");
+                int nextId;
+                if (currentIdNum == null) {
+                    nextId = 1;
+                } else {
+                    nextId = currentIdNum.intValue() + 1;
+                }
+
+                long nowTime = System.currentTimeMillis();
+                Date date = new Date(nowTime);
+                addLibrary.setId(nextId);
+                addLibrary.setTitle(createLibraryEvent.getTitle());
+                addLibrary.setType(createLibraryEvent.getType());
+                addLibrary.setLibType(createLibraryEvent.getLibType());
+                addLibrary.setCreateAt(date);
+                realm.copyToRealm(addLibrary);
+                Log.d("새로운 서재", "서재추가 성공");
+            }
+        });
+        initLibraryRealm();
+    }
+
+    @Subscribe
+    public void editLibary(final EditLibraryEvent editLibraryEvent) {
+        if (editLibraryEvent.getId() != 1) {
+            final Library library = realm.where(Library.class).equalTo("id", editLibraryEvent.getId()).findFirst();
+            realm.executeTransaction(new Realm.Transaction() {
+                @Override
+                public void execute(Realm realm) {
+                    long nowTime = System.currentTimeMillis();
+                    Date date = new Date(nowTime);
+                    library.setTitle(editLibraryEvent.getTitle());
+                    library.setUpdatedAt(date);
+                    realm.copyToRealmOrUpdate(library);
+                }
+            });
+            libraryAdapter.notifyDataSetChanged();
+        } else {
+            Toast.makeText(this, "기본 책장은 수정할 수 없습니다!", Toast.LENGTH_SHORT).show();
+        }
+
+    }
+
+    @Subscribe
+    public void deleteLibrary(final DeleteLibraryEvent deleteLibraryEvent) {
+        if (deleteLibraryEvent.getId() != 1) {
+            final Library library = realm.where(Library.class).equalTo("id", deleteLibraryEvent.getId()).findFirst();
+            realm.executeTransaction(new Realm.Transaction() {
+                @Override
+                public void execute(Realm realm) {
+                    /*RealmResults<Library> libraries = realm.where(Library.class).equalTo("id", deleteLibraryEvent.getId()).findAll();
+                    libraries.deleteAllFromRealm();*/
+                    library.deleteFromRealm();
+                }
+            });
+            //libraryAdapter.removeItem(deleteLibraryEvent.getId());
+            initLibraryRealm();
+        }
     }
 
     /**
