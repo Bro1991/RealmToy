@@ -65,7 +65,7 @@ public class MainActivity extends AppCompatActivity {
     RecyclerView book_recycler;
     BookAdapter bookAdapter;
     ArrayList<NaverBook> naverBookArrayList = new ArrayList<>();
-    ArrayList<Library> libraryList = new ArrayList<>();
+    //ArrayList<Library> libraryList = new ArrayList<>();
     List<Book> bookList = new ArrayList<>();
     DrawerLayout mDrawerLayout;
     ActionBarDrawerToggle mDrawerToggle;
@@ -111,6 +111,7 @@ public class MainActivity extends AppCompatActivity {
 
         searchFile();
         searchBookcover();
+        searchPhotomemo();
 
     }
 
@@ -146,6 +147,25 @@ public class MainActivity extends AppCompatActivity {
             }
         } else {
             Log.d("book_cover 파일리스트", "없음");
+        }
+    }
+
+    private void searchPhotomemo() {
+        String SAVE_PHOTO_MEMO = "/photo_memo";
+        //폴더생겼는지 여부 파악하기 위한 것들
+        File root = getFilesDir().getAbsoluteFile();
+        //String savePath = root.getPath() + SAVE_FOLDER + "book_cover";
+        String savePath = root.getPath() + SAVE_FOLDER + SAVE_PHOTO_MEMO;
+
+        File file = new File(savePath);
+        File files[] = file.listFiles();
+        //File files[] = getFilesDir().listFiles();
+        if (files != null) {
+            for (int i = 0; i < files.length; i++) {
+                Log.d("photo_memo 파일리스트", files[i].getName().toString());
+            }
+        } else {
+            Log.d("photo_memo 파일리스트", "없음");
         }
     }
 
@@ -202,9 +222,14 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-        libraryAdapter = new LibraryAdapter(this, libraryList, realm);
+        //libraryAdapter = new LibraryAdapter(this, libraryList, realm);
+        libraryAdapter = new LibraryAdapter(this, realm);
         mLibraryListView.setAdapter(libraryAdapter);
-        initToolbar();
+        //initToolbar();
+        toolbar = (Toolbar) findViewById(R.id.toolbar);
+        setSupportActionBar(toolbar);
+        getSupportActionBar().setDisplayShowTitleEnabled(true);
+        getSupportActionBar().setDisplayShowCustomEnabled(true); //커스터마이징 하기 위해 필요
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         mDrawerToggle.setDrawerIndicatorEnabled(true);
         mDrawerLayout.setDrawerLockMode(DrawerLayout.LOCK_MODE_UNLOCKED);
@@ -272,10 +297,10 @@ public class MainActivity extends AppCompatActivity {
         if (libraryRealmResults.size() == 0) {
             Log.d("서재가 없다", "서재를 생성합니다");
             final Library library = new Library();
-            final Library wantto = new Library();
+/*            final Library wantto = new Library();
             final Library before = new Library();
             final Library now = new Library();
-            final Library after = new Library();
+            final Library after = new Library();*/
             realm.executeTransaction(new Realm.Transaction() {
                 @Override
                 public void execute(Realm realm) {
@@ -289,6 +314,7 @@ public class MainActivity extends AppCompatActivity {
                     library.setCreateAt(date);
                     realm.copyToRealm(library);
 
+                   /*
                     long nowTime2 = System.currentTimeMillis();
                     Date date2 = new Date(nowTime2);
                     wantto.setId(2);
@@ -328,18 +354,18 @@ public class MainActivity extends AppCompatActivity {
                     after.setLibType(0);
                     after.setRead_state(4);
                     realm.copyToRealm(after);
-                    Log.d("기본 서재 생성", "기본서재 생성 성공");
+                    Log.d("기본 서재 생성", "기본서재 생성 성공");*/
                 }
             });
             //libraryList.add(library);
-            Log.d("라이브러리 갯수", String.valueOf(libraryList.size()));
+            //Log.d("라이브러리 갯수", String.valueOf(libraryList.size()));
             libraryAdapter.addrealmItems(libraryRealmResults);
             Log.d("라이브러리 데이터 업데이트", "업데이트 성공");
         } else {
             libraryAdapter.refresh();
             libraryAdapter.addrealmItems(libraryRealmResults);
             mLibraryListView.setAdapter(libraryAdapter);
-            Log.d("라이브러리 갯수", String.valueOf(libraryList.size()));
+            //Log.d("라이브러리 갯수", String.valueOf(libraryList.size()));
             Log.d("라이브러리 데이터 업데이트", "업데이트 성공");
         }
     }

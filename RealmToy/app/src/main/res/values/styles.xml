@@ -8,12 +8,15 @@
         <item name="colorAccent">@color/colorAccent</item>
     </style>
 
+
+
+<!--
     //액션바 스타일
     <style name="MyActionBar" parent="@style/Widget.AppCompat.ActionBar.Solid">
         <item name="android:windowNoTitle">true</item>
         <item name="android:windowActionBar">false</item>
         <item name="background">@android:color/transparent</item>
-        <item name="android:background">@color/sky</item>
+        <item name="android:background">@color/white</item>
         <item name="titleTextStyle">@style/MyTitleTextStyle</item>
     </style>
 
@@ -33,6 +36,7 @@
         <item name="windowActionBar">false</item>
         <item name="windowNoTitle">true</item>
     </style>
+-->
 
     <style name="NoActions" parent="Theme.AppCompat.Light.DarkActionBar">
         <!-- Customize your theme here. -->
@@ -40,12 +44,8 @@
         <item name="colorPrimaryDark">@color/colorPrimaryDark</item>
         <item name="colorAccent">@color/colorAccent</item>
         <item name="windowActionBar">false</item>
-        <item name="windowNoTitle">false</item>
-    </style>
-
-    <style name="AppTheme.NoActionBar">
-        <item name="windowActionBar">false</item>
         <item name="windowNoTitle">true</item>
     </style>
+
 
 </resources>

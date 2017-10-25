@@ -77,6 +77,35 @@ public class LibraryAdapter extends BaseAdapter implements StickyListHeadersAdap
         this.after.setType(1);
         this.after.setRead_state(4);
 
+        this.items = new ArrayList<>();
+        this.realm = realm;
+    }
+
+    public LibraryAdapter(Context context,  Realm realm) {
+        inflater = LayoutInflater.from(context);
+        this.context = context;
+
+        this.wantto = new Library();
+        this.wantto.setTitle("구입희망");
+        this.wantto.setType(1);
+        this.wantto.setRead_state(1);
+
+        this.before = new Library();
+        this.before.setTitle("읽을 예정");
+        this.before.setType(1);
+        this.before.setRead_state(2);
+
+        this.now = new Library();
+        this.now.setTitle("읽는 중");
+        this.now.setType(1);
+        this.now.setRead_state(3);
+
+        this.after = new Library();
+        this.after.setTitle("다 읽음");
+        this.after.setType(1);
+        this.after.setRead_state(4);
+
+        this.items = new ArrayList<>();
         this.realm = realm;
     }
 
@@ -114,24 +143,6 @@ public class LibraryAdapter extends BaseAdapter implements StickyListHeadersAdap
     }
 
     public boolean toggleLibraryBtn(boolean flag) {
-
-//        if (flag) {
-//            for (Button btn : editBtns) {
-//                btn.setVisibility(View.VISIBLE);
-//            }
-//
-//            for (Button btn : deleteBtns) {
-//                btn.setVisibility(View.VISIBLE);
-//            }
-//        } else {
-//            for (Button btn : editBtns) {
-//                btn.setVisibility(View.GONE);
-//            }
-//
-//            for (Button btn : deleteBtns) {
-//                btn.setVisibility(View.GONE);
-//            }
-//        }
         return !flag;
     }
 
@@ -367,8 +378,14 @@ public class LibraryAdapter extends BaseAdapter implements StickyListHeadersAdap
     }
 
     public void addrealmItems(RealmResults<Library> newItems) {
-        for (Library item : newItems)
+        for (Library item : newItems) {
             items.add(item);
+        }
+
+        items.add(wantto);
+        items.add(before);
+        items.add(now);
+        items.add(after);
         notifyDataSetChanged();
     }
 
