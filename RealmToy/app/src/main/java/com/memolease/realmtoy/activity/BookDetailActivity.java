@@ -2,6 +2,7 @@ package com.memolease.realmtoy.activity;
 
 import android.Manifest;
 import android.content.ComponentName;
+import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.content.pm.ResolveInfo;
@@ -12,6 +13,7 @@ import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Matrix;
 import android.graphics.Paint;
+import android.graphics.Point;
 import android.media.ExifInterface;
 import android.media.MediaScannerConnection;
 import android.net.Uri;
@@ -26,7 +28,9 @@ import android.os.Bundle;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
+import android.view.Display;
 import android.view.View;
+import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.RadioButton;
@@ -36,6 +40,7 @@ import android.widget.Toast;
 
 import com.bumptech.glide.Glide;
 import com.memolease.realmtoy.BuildConfig;
+import com.memolease.realmtoy.adapter.PhotoMemoAdapter;
 import com.memolease.realmtoy.event.EditMemoEvent;
 import com.memolease.realmtoy.adapter.MemoAdapter;
 import com.memolease.realmtoy.event.PutChangeStateBookEvent;
@@ -77,10 +82,14 @@ public class BookDetailActivity extends AppCompatActivity {
     Realm realm;
 
     RealmList<Memo> memoList = new RealmList<>();
+    //List<PhotoMemo> photoMemoList = new ArrayList<>();
+    RealmList<PhotoMemo> photoMemoList = new RealmList<>();
     RecyclerView recycler_memo;
+    RecyclerView recycler_photomemo;
     LinearLayoutManager linearLayoutManager;
 
     MemoAdapter memoAdapter;
+    PhotoMemoAdapter photoMemoAdapter;
     //String ids = getIntent().getStringExtra("id");
 
     private String[] permissions = {Manifest.permission.READ_EXTERNAL_STORAGE,
@@ -112,13 +121,13 @@ public class BookDetailActivity extends AppCompatActivity {
         Log.d("가져온 ID 값", String.valueOf(id));
 
         initUI();
-        initRecycler();
-        initPhotomemo();
+        initPhotoMemoRecycler();
+        initMemoRecycler();
         getbook();
         createDirectoryFolder();
     }
 
-    private void initRecycler() {
+    private void initMemoRecycler() {
         recycler_memo = (RecyclerView) findViewById(R.id.recycler_memo);
         linearLayoutManager = new LinearLayoutManager(this, LinearLayoutManager.VERTICAL, false);
 
@@ -138,14 +147,25 @@ public class BookDetailActivity extends AppCompatActivity {
         recycler_memo.setAdapter(memoAdapter);
     }
 
-    private void initPhotomemo() {
+    private void initPhotoMemoRecycler() {
+        recycler_photomemo = (RecyclerView) findViewById(R.id.recycler_photomemo);
+        linearLayoutManager = new LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false);
+        recycler_photomemo.setLayoutManager(linearLayoutManager);
+
         mBook = realm.where(Book.class).equalTo("id", id).findFirst();
-        RealmList<PhotoMemo> memos = mBook.getPhotoMemoList();
-        if (memos.size() != 0) {
-            for (PhotoMemo memo : memos) {
-                Log.d("저장된 파일 경로", memo.getImagePath());
+        RealmList<PhotoMemo> photoMemos = mBook.getPhotoMemoList();
+        if (photoMemos.size() != 0) {
+            for (PhotoMemo photoMemo : photoMemos) {
+                photoMemoList.add(photoMemo);
+                Log.d("저장된 파일 경로", photoMemo.getImagePath());
             }
+        } else {
+            photoMemoList.clear();
         }
+        photoMemoAdapter = new PhotoMemoAdapter(this, photoMemoList);
+        photoMemoAdapter.mContext = this;
+        Log.d("저장된 사진의 갯수", String.valueOf(photoMemoAdapter.getItemCount()));
+        recycler_photomemo.setAdapter(photoMemoAdapter);
     }
 
     private void getbook() {
@@ -240,9 +260,11 @@ public class BookDetailActivity extends AppCompatActivity {
         addPhotoMemoButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                checkPermissions();
-                takePhoto();
-
+                if (checkPermissions() == true) {
+                    takePhoto();
+                } else {
+                    checkPermissions();
+                }
             }
         });
 
@@ -321,7 +343,7 @@ public class BookDetailActivity extends AppCompatActivity {
     }
 
     private File createImageFile() throws IOException {
-        String timeStamp = new SimpleDateFormat("yyyyMMddHHmm").format(new Date());
+        String timeStamp = new SimpleDateFormat("yyyyMMddHHmmss").format(new Date());
         String fileName;
         if (mBook.getIsbn13() != null) {
             fileName = mBook.getIsbn13();
@@ -447,6 +469,8 @@ public class BookDetailActivity extends AppCompatActivity {
                 mBook.photoMemoList.add(photoMemo);
             }
         });
+        photoMemoList.add(photoMemo);
+        photoMemoAdapter.notifyDataSetChanged();
         Toast.makeText(this, "저장되었습니다.", Toast.LENGTH_SHORT).show();
 
     }
@@ -510,7 +534,6 @@ public class BookDetailActivity extends AppCompatActivity {
 
     private void showNoPermissionToastAndFinish() {
         Toast.makeText(this, "권한 요청에 동의 해주셔야 이용 가능합니다. 설정에서 권한 허용 하시기 바랍니다.", Toast.LENGTH_SHORT).show();
-        finish();
     }
 
     @Override
@@ -681,7 +704,7 @@ public class BookDetailActivity extends AppCompatActivity {
         } else {
             fileName = mBook.getIsbn();
         }
-        String timeStamp = new SimpleDateFormat("yyyyMMddHHmm").format(new Date());
+        String timeStamp = new SimpleDateFormat("yyyyMMddHHmmss").format(new Date());
         String photoMemoFileName = fileName + "_" + timeStamp;
         //String uriSting = (createFolder.getAbsolutePath() + "/" + System.currentTimeMillis() + ".jpg");
         String uriSting = (savePath + "/" + photoMemoFileName + ".jpg");

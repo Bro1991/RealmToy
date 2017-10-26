@@ -5,7 +5,9 @@
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
+
     <uses-feature android:name="android.hardware.camera" />
+
     <uses-permission android:name="android.permission.CAMERA" />
     <uses-permission android:name="android.hardware.camera.autofocus" />
 
@@ -18,8 +20,8 @@
         android:theme="@style/AppTheme">
         <activity
             android:name=".activity.MainActivity"
-            android:theme="@style/NoActions"
-            android:screenOrientation="portrait">
+            android:screenOrientation="portrait"
+            android:theme="@style/NoActions">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
@@ -28,7 +30,7 @@
         </activity>
         <activity android:name=".activity.SearchBookActivity" />
         <activity android:name=".activity.BookDetailActivity" />
-        <activity android:name=".activity.MemoEditActivity"></activity>
+        <activity android:name=".activity.MemoEditActivity" />
 
         <provider
             android:name="android.support.v4.content.FileProvider"
@@ -40,6 +42,7 @@
                 android:resource="@xml/provider_paths" />
         </provider>
 
+        <activity android:name=".activity.PhotoActivity"></activity>
     </application>
 
 </manifest>
