@@ -14,6 +14,7 @@ import android.graphics.Color;
 import android.graphics.Matrix;
 import android.graphics.Paint;
 import android.graphics.Point;
+import android.graphics.Rect;
 import android.media.ExifInterface;
 import android.media.MediaScannerConnection;
 import android.net.Uri;
@@ -67,6 +68,7 @@ import io.realm.Realm;
 import io.realm.RealmList;
 
 public class BookDetailActivity extends AppCompatActivity {
+    Context mContext;
     ImageView mBookImageView;
     TextView mTitleView;
     TextView mTitleParse;
@@ -116,6 +118,7 @@ public class BookDetailActivity extends AppCompatActivity {
         mBus.register(this);
         id = getIntent().getExtras().getInt("id");
         readState = getIntent().getExtras().getInt("readState");
+        mContext = this;
         //id = getIntent().getIntExtra("id", 1);
 
         Log.d("가져온 ID 값", String.valueOf(id));
@@ -635,6 +638,7 @@ public class BookDetailActivity extends AppCompatActivity {
         canvas.setMatrix(scaleMatrix);
         canvas.drawBitmap(bmp, middleX - bmp.getWidth() / 2, middleY - bmp.getHeight() / 2, new Paint(Paint.FILTER_BITMAP_FLAG));
 
+
 //      check the rotation of the image and display it properly
         ExifInterface exif;
         try {
@@ -661,12 +665,39 @@ public class BookDetailActivity extends AppCompatActivity {
             e.printStackTrace();
         }
 
+        //Paint paint = new Paint(Paint.ANTI_ALIAS_FLAG);
+
+        //text fill
+        Paint paint = new Paint();
+        paint.setColor(Color.WHITE);
+        paint.setStyle(Paint.Style.FILL);
+        paint.setTextSize(22);
+
+        //text outline
+        Paint mTextOutline  = new Paint();
+        mTextOutline .setColor(Color.BLACK);
+        mTextOutline.setAlpha(20);
+        mTextOutline .setStyle(Paint.Style.STROKE);
+        mTextOutline.setTextSize(22);
+        mTextOutline.setStrokeWidth(2);
+
+
+        Rect bounds = new Rect();
+        String drawtext = "- " + mBook.getTitle() + " 中";
+        paint.getTextBounds(drawtext, 0, drawtext.length(), bounds);
+        Canvas textCanvas = new Canvas(scaledBitmap);
+        canvas.drawRect(bounds, mTextOutline );
+        textCanvas.drawText("- " + mBook.getTitle() + " 中", scaledBitmap.getWidth() - bounds.width() - dp2px(mContext, 10), scaledBitmap.getHeight() - dp2px(mContext, 10), mTextOutline);
+        textCanvas.drawText("- " + mBook.getTitle() + " 中", scaledBitmap.getWidth() - bounds.width() - dp2px(mContext, 10), scaledBitmap.getHeight() - dp2px(mContext, 10), paint);
+
+        //dp2px(mContext, 10);
+
         FileOutputStream out = null;
         String filename = getFilename();
         try {
             out = new FileOutputStream(filename);
 
-            scaledBitmap.compress(Bitmap.CompressFormat.JPEG, 90, out);
+            scaledBitmap.compress(Bitmap.CompressFormat.JPEG, 85, out);
 
         } catch (FileNotFoundException e) {
             e.printStackTrace();
@@ -692,6 +723,11 @@ public class BookDetailActivity extends AppCompatActivity {
         }
 
         return inSampleSize;
+    }
+
+    public static int dp2px(Context context, float dp) {
+        final float scale = context.getResources().getDisplayMetrics().density;
+        return (int) (dp * scale + 0.5f);
     }
 
     public String getFilename() {
