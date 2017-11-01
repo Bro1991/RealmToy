@@ -1,28 +1,24 @@
 package com.memolease.realmtoy.adapter;
 
 import android.content.Context;
-import android.content.Intent;
-import android.graphics.Color;
 import android.graphics.Point;
-import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.view.Display;
+import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.ImageView;
-import android.widget.TextView;
 import android.widget.Toast;
 
+import com.afollestad.materialdialogs.DialogAction;
+import com.afollestad.materialdialogs.MaterialDialog;
 import com.bumptech.glide.Glide;
+import com.github.chrisbanes.photoview.PhotoView;
 import com.memolease.realmtoy.R;
-import com.memolease.realmtoy.activity.BookDetailActivity;
-import com.memolease.realmtoy.activity.MemoEditActivity;
-import com.memolease.realmtoy.activity.PhotoActivity;
-import com.memolease.realmtoy.event.deleteMemo;
-import com.memolease.realmtoy.model.Memo;
+import com.memolease.realmtoy.event.DeletePhotoMemo;
 import com.memolease.realmtoy.model.PhotoMemo;
 import com.memolease.realmtoy.util.BusProvider;
 
@@ -34,20 +30,38 @@ import java.util.List;
  * Created by bro on 2017-09-21.
  */
 
-public class PhotoMemoAdapter extends RecyclerView.Adapter<PhotoMemoAdapter.PhotoMemoViewHolder> {
+public class PhotoViewAdapter extends RecyclerView.Adapter<PhotoViewAdapter.PhotoMemoViewHolder> {
     public List<PhotoMemo> items;
     public Context mContext;
 
-    public PhotoMemoAdapter(Context context, List<PhotoMemo> items) {
+    public PhotoViewAdapter(Context context, List<PhotoMemo> items) {
         this.mContext = context;
         this.items = items;
     }
 
     @Override
     public PhotoMemoViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
-        View rootView = View.inflate(parent.getContext(), R.layout.photo_item, null);
+        //View rootView = View.inflate(parent.getContext(), R.layout.photoview_item, null);
+        View rootView = LayoutInflater.from(parent.getContext()).inflate(R.layout.photoview_item, parent, false);
+        rootView.setLayoutParams(new RecyclerView.LayoutParams(RecyclerView.LayoutParams.MATCH_PARENT, RecyclerView.LayoutParams.WRAP_CONTENT));
         PhotoMemoViewHolder photoMemoViewHolder = new PhotoMemoViewHolder(rootView);
         return photoMemoViewHolder;
+    }
+
+    private int getDeviceWidth() {
+        WindowManager wm = (WindowManager) mContext.getSystemService(Context.WINDOW_SERVICE);
+        Display display = wm.getDefaultDisplay();
+        Point size = new Point();
+        display.getSize(size);
+        return size.x;
+    }
+
+    private int getDeviceHeight() {
+        WindowManager wm = (WindowManager) mContext.getSystemService(Context.WINDOW_SERVICE);
+        Display display = wm.getDefaultDisplay();
+        Point size = new Point();
+        display.getSize(size);
+        return size.y;
     }
 
     @Override
@@ -133,34 +147,46 @@ public class PhotoMemoAdapter extends RecyclerView.Adapter<PhotoMemoAdapter.Phot
         return items.size();
     }
 
-    class PhotoMemoViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener {
+    class PhotoMemoViewHolder extends RecyclerView.ViewHolder {
         int id;
-        ImageView photoMemo;
-        PhotoMemoAdapter mAdapter;
+        PhotoView photoMemo;
+        //ImageView photoMemo;
+        Button deleteImageMemo;
+        PhotoViewAdapter mAdapter;
         Context context;
 
         public PhotoMemoViewHolder(View v) {
             super(v);
-            photoMemo = (ImageView) v.findViewById(R.id.photoMemo);
-
-            v.setOnClickListener(this);
-        }
-
-        @Override
-        public void onClick(View v) {
-            PhotoMemo memo = items.get(getAdapterPosition());
-            Intent detail = new Intent(context, PhotoActivity.class);
-            detail.putExtra("book_id", memo.getBookid());
-            detail.putExtra("index", getAdapterPosition());
-            context.startActivity(detail);
-            Toast.makeText(context, getAdapterPosition()+"째 사진메모가 눌렸습니다", Toast.LENGTH_SHORT).show();
+            photoMemo = (PhotoView) v.findViewById(R.id.photoMemo);
+            // photoMemo = (ImageView) v.findViewById(R.id.photoMemo);
+            deleteImageMemo = (Button) v.findViewById(R.id.deleteImageMemo);
+            deleteImageMemo.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    final PhotoMemo photoMemo = items.get(getAdapterPosition());
+                    new MaterialDialog.Builder(context)
+                            .content("사진 메모를 삭제하시겠습니까?")
+                            .positiveText("삭제")
+                            .negativeText("취소")
+                            .onPositive(new MaterialDialog.SingleButtonCallback() {
+                                @Override
+                                public void onClick(MaterialDialog dialog, DialogAction which) {
+                                    DeletePhotoMemo deletePhotoMemo = new DeletePhotoMemo();
+                                    deletePhotoMemo.setId(photoMemo.getId());
+                                    deletePhotoMemo.setPosition(getAdapterPosition());
+                                    BusProvider.getInstance().post(deletePhotoMemo);
+                                }
+                            })
+                            .show();
+                }
+            });
         }
 
         public void setId(int id) {
             this.id = id;
         }
 
-        public void setmAdapter(PhotoMemoAdapter mAdapter) {
+        public void setmAdapter(PhotoViewAdapter mAdapter) {
             this.mAdapter = mAdapter;
         }
 

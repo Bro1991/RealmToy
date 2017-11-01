@@ -42,7 +42,9 @@
                 android:resource="@xml/provider_paths" />
         </provider>
 
-        <activity android:name=".activity.PhotoActivity"></activity>
+        <activity android:name=".activity.PhotoActivity"
+            android:screenOrientation="portrait"
+            android:theme="@style/NoActions"></activity>
     </application>
 
 </manifest>

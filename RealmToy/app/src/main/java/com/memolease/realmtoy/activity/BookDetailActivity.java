@@ -42,6 +42,8 @@ import android.widget.Toast;
 import com.bumptech.glide.Glide;
 import com.memolease.realmtoy.BuildConfig;
 import com.memolease.realmtoy.adapter.PhotoMemoAdapter;
+import com.memolease.realmtoy.event.DeletePhotoMemo;
+import com.memolease.realmtoy.event.DeletePhotoSuccessEvent;
 import com.memolease.realmtoy.event.EditMemoEvent;
 import com.memolease.realmtoy.adapter.MemoAdapter;
 import com.memolease.realmtoy.event.PutChangeStateBookEvent;
@@ -170,6 +172,24 @@ public class BookDetailActivity extends AppCompatActivity {
         Log.d("저장된 사진의 갯수", String.valueOf(photoMemoAdapter.getItemCount()));
         recycler_photomemo.setAdapter(photoMemoAdapter);
     }
+
+    @Subscribe
+    public void successDeletePhotoMemo(DeletePhotoSuccessEvent deletePhotoSuccessEvent) {
+        photoMemoList.clear();
+        RealmList<PhotoMemo> photoMemos = mBook.getPhotoMemoList();
+        if (photoMemos.size() != 0) {
+            for (PhotoMemo photoMemo : photoMemos) {
+                photoMemoList.add(photoMemo);
+                Log.d("저장된 파일 경로", photoMemo.getImagePath());
+            }
+        } else {
+            photoMemoList.clear();
+        }
+        photoMemoAdapter.notifyDataSetChanged();
+
+
+    }
+
 
     private void getbook() {
 /*        String[] chunks = mBook.getTitle().split("\\(");
@@ -424,7 +444,6 @@ public class BookDetailActivity extends AppCompatActivity {
         });
         memoList.remove(deleteMemo.getPosition());
         memoAdapter.notifyItemRemoved(deleteMemo.getPosition());
-
     }
 
     @Subscribe
@@ -463,7 +482,7 @@ public class BookDetailActivity extends AppCompatActivity {
                 }
                 long now = System.currentTimeMillis();
                 Date date = new Date(now);
-                SimpleDateFormat sdfNow = new SimpleDateFormat("yyyy.MM.dd");
+                SimpleDateFormat sdfNow = new SimpleDateFormat("yyyyMMddHHmmss");
                 final String strNow = sdfNow.format(date);
                 photoMemo.setId(nextId);
                 photoMemo.setBookid(id);
@@ -523,7 +542,6 @@ public class BookDetailActivity extends AppCompatActivity {
                         } else if (permissions[i].equals(this.permissions[2])) {
                             if (grantResults[i] != PackageManager.PERMISSION_GRANTED) {
                                 showNoPermissionToastAndFinish();
-
                             }
                         }
                     }
@@ -697,7 +715,7 @@ public class BookDetailActivity extends AppCompatActivity {
         try {
             out = new FileOutputStream(filename);
 
-            scaledBitmap.compress(Bitmap.CompressFormat.JPEG, 85, out);
+            scaledBitmap.compress(Bitmap.CompressFormat.JPEG, 90, out);
 
         } catch (FileNotFoundException e) {
             e.printStackTrace();
