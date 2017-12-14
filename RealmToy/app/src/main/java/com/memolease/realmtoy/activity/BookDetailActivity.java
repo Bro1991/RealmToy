@@ -362,7 +362,7 @@ public class BookDetailActivity extends AppCompatActivity {
             }
             intent.putExtra(MediaStore.EXTRA_OUTPUT, photoUri);
             startActivityForResult(intent, PICK_FROM_CAMERA);
-        }
+            }
     }
 
     private File createImageFile() throws IOException {
@@ -715,7 +715,7 @@ public class BookDetailActivity extends AppCompatActivity {
         try {
             out = new FileOutputStream(filename);
 
-            scaledBitmap.compress(Bitmap.CompressFormat.JPEG, 90, out);
+            scaledBitmap.compress(Bitmap.CompressFormat.JPEG, 100, out);
 
         } catch (FileNotFoundException e) {
             e.printStackTrace();

@@ -57,6 +57,7 @@ public class NaverBook{
     private String description;
 
     private boolean exist_state;
+    int type; //0이면 빈 화면, 1이면 책이 있음
 
     int readState;
 
@@ -195,5 +196,13 @@ public class NaverBook{
 
     public void setDescription(String description) {
         this.description = description;
+    }
+
+    public int getType() {
+        return type;
+    }
+
+    public void setType(int type) {
+        this.type = type;
     }
 }

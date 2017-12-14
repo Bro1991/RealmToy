@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <android.support.v7.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:card_view="http://schemas.android.com/apk/res-auto"
-    android:layout_width="wrap_content"
-    android:layout_height="170dp"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
     card_view:cardBackgroundColor="@android:color/transparent"
     card_view:cardCornerRadius="1dp"
     card_view:cardElevation="0dp"
@@ -10,20 +10,19 @@
     card_view:cardPreventCornerOverlap="false"
     card_view:cardUseCompatPadding="true"
     card_view:contentPaddingLeft="-4dp"
-    card_view:contentPaddingRight="-4dp">
-
+    card_view:contentPaddingRight="4dp">
 
     <RelativeLayout
         android:layout_width="match_parent"
-        android:layout_height="180dp"
-        android:paddingTop="5dp">
+        android:layout_height="match_parent"
+        android:paddingTop="5dp"
+        android:paddingBottom="5dp">
 
         <FrameLayout
-            android:id="@+id/book_container"
-            android:layout_width="100dp"
+            android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:layout_above="@+id/book_bottom_bars"
-            android:layout_marginBottom="-9dp"
+            android:layout_marginBottom="5dp"
             android:layout_marginLeft="12dp"
             android:layout_marginRight="12dp"
             android:layout_marginTop="5dp"
@@ -91,54 +90,19 @@
                 android:src="@drawable/lendbook_gradient_left" />
 
         </FrameLayout>
-
-        <RelativeLayout
-            android:id="@+id/book_bottom_bars"
-            android:layout_width="fill_parent"
-            android:layout_height="40dp"
-            android:layout_alignParentBottom="true">
-
-            <ImageView
-                android:layout_width="fill_parent"
-                android:layout_height="10dp"
-                android:layout_alignParentTop="true"
-                android:alpha="0.3"
-                android:src="@drawable/lendbook_gradient_bottom" />
-
-            <RelativeLayout
-                android:id="@+id/book_bottom_bar"
-                android:layout_width="fill_parent"
-                android:layout_height="10dp"
-                android:layout_alignParentTop="true"
-
-                android:layout_marginTop="10dp"
-                android:background="#ffffff">
-
-                <ImageView
-                    android:layout_width="fill_parent"
-                    android:layout_height="3dp"
-                    android:layout_alignParentTop="true"
-                    android:alpha="0.3"
-                    android:src="@drawable/lendbook_gradient_top" />
-
-                <ImageView
-                    android:layout_width="fill_parent"
-                    android:layout_height="3dp"
-                    android:layout_alignParentBottom="true"
-                    android:adjustViewBounds="false"
-                    android:alpha="0.3"
-                    android:src="@drawable/lendbook_gradient_bottom" />
-            </RelativeLayout>
-
-            <ImageView
-                android:layout_width="fill_parent"
-                android:layout_height="20dp"
-                android:layout_alignParentBottom="true"
-                android:adjustViewBounds="false"
-                android:alpha="0.3"
-                android:src="@drawable/lendbook_gradient_top" />
-        </RelativeLayout>
     </RelativeLayout>
+    <TextView
+        android:id="@+id/title_txt"
+        android:background="#0e0e0e"
+        android:textColor="#ffffff"
+        android:layout_marginBottom="8dp"
+        android:layout_marginLeft="12dp"
+        android:layout_marginRight="12dp"
+        android:layout_gravity="bottom"
+        android:gravity="center"
+        android:layout_width="match_parent"
+        android:layout_height="50dp"
+        android:text="title"/>
 
 
 </android.support.v7.widget.CardView>

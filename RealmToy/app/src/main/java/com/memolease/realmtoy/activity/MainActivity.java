@@ -107,7 +107,8 @@ public class MainActivity extends AppCompatActivity {
         drawerLayoutInit();
         //initToolbar();
         initLibraryRealm();
-        initBookRealm();
+        //initBookRealm();
+        initBookRealmTest();
 
         searchFile();
         searchBookcover();
@@ -289,6 +290,51 @@ public class MainActivity extends AppCompatActivity {
         } else {
             bookList.clear();
         }
+    }
+
+    private void initBookRealmTest() {
+        int id = 1;
+        RealmResults<Book> books = realm.where(Book.class).equalTo("libraryid", id).findAll();
+        if (books.size() != 0) {
+            for (Book book : books) {
+                bookList.add(book);
+                postion++;
+                Log.d("position값", String.valueOf(postion));
+                bookAdapter.bookSize = postion;
+                bookAdapter.notifyItemChanged(postion);
+            }
+            if (books.size() < 10) {
+                int blank = 10 - books.size();
+                for (int i = 1; i < blank; i++) {
+                    Book book = new Book();
+                    book.setType(0);
+                    bookList.add(book);
+                    postion++;
+                    Log.d("position값", String.valueOf(postion));
+                    bookAdapter.bookSize = postion;
+                    bookAdapter.notifyItemChanged(postion);
+                }
+            }
+        } else if (books.size() == 0) {
+            //int blank = 10 - books.size();
+            for (int i = 1; i < 10; i++) {
+                Book book = new Book();
+                book.setType(0);
+                book.setId(0);
+                bookList.add(book);
+                postion++;
+                Log.d("position값", String.valueOf(postion));
+                bookAdapter.bookSize = postion;
+                bookAdapter.notifyItemChanged(postion);
+            }
+        }
+    }
+
+    private void refresh() {
+        postion = 0;
+        bookList.clear();
+        bookAdapter.notifyDataSetChanged();
+        initBookRealmTest();
     }
 
     private void initLibraryRealm() {
@@ -571,8 +617,13 @@ public class MainActivity extends AppCompatActivity {
             }
         });
         //bookAdapter.bookSize = naverBookArrayList.size();
-        bookAdapter.bookSize = bookList.size();
-        bookAdapter.notifyDataSetChanged();
+        if (bookList.size() < 10) {
+            refresh();
+        } else {
+            bookAdapter.bookSize = bookList.size();
+            bookAdapter.notifyDataSetChanged();
+        }
+
     }
 
     @Subscribe
@@ -905,9 +956,15 @@ public class MainActivity extends AppCompatActivity {
                     book.setBook(realmResults);
                 }
             });
-            bookList.add(book);
-            bookAdapter.notifyDataSetChanged();
-            libraryAdapter.notifyDataSetChanged();
+            RealmResults<Book> books = realm.where(Book.class).findAll();
+            if (books.size() < 10) {
+                refresh();
+                libraryAdapter.notifyDataSetChanged();
+            } else {
+                bookList.add(book);
+                bookAdapter.notifyDataSetChanged();
+                libraryAdapter.notifyDataSetChanged();
+            }
         }
     }
 }

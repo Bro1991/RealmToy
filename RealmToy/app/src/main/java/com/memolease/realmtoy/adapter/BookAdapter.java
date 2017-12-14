@@ -6,9 +6,11 @@ import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.FrameLayout;
 import android.widget.ImageView;
 
 import com.bumptech.glide.Glide;
+import com.memolease.realmtoy.activity.PagerActivity;
 import com.memolease.realmtoy.event.DeleteBookEvent;
 import com.memolease.realmtoy.R;
 import com.memolease.realmtoy.activity.BookDetailActivity;
@@ -28,9 +30,8 @@ public class BookAdapter extends RecyclerView.Adapter<BookAdapter.BookViewHolder
     List<Book> bookList;
     public int bookSize = -1;
 
-    /*public BookAdapter(List<NaverBook> naverBookList) {
-        this.naverBookList = naverBookList;
-    }*/
+    private final int BOOK_BLANK = 0, BOOK = 1;
+
 
     public BookAdapter(List<Book> BookList) {
         this.bookList = BookList;
@@ -41,9 +42,32 @@ public class BookAdapter extends RecyclerView.Adapter<BookAdapter.BookViewHolder
     }
 
     @Override
+    public int getItemViewType(int position) {
+        if (bookList.get(position).getType() == 0) {
+            return BOOK_BLANK;
+        } else {
+            return BOOK;
+        }
+    }
+
+    @Override
+    public long getItemId(int position) {
+        return bookList.get(position).getId();
+    }
+
+    @Override
     public BookViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
         View rootView = View.inflate(parent.getContext(), R.layout.book_item, null);
         BookViewHolder bookViewHolder = new BookViewHolder(rootView);
+
+        switch (viewType) {
+            case BOOK_BLANK:
+                bookViewHolder.book_container.setVisibility(View.GONE);
+                break;
+            case BOOK:
+                bookViewHolder.book_container.setVisibility(View.VISIBLE);
+                break;
+        }
         return bookViewHolder;
     }
 
@@ -54,16 +78,16 @@ public class BookAdapter extends RecyclerView.Adapter<BookAdapter.BookViewHolder
 
         holder.context = mContext;
         holder.mAdapter = this;
-
         holder.setAdapter(this);
 
-        File file = new File(book.getImagePath());
-        Log.d("파일경로", file.getPath());
-        //File file = new File(mBook.getImage_path());
-        Glide.with(holder.book_image.getContext())
-                .load(file)
-                .into(holder.book_image);
-
+        if (book.getType() == 1) {
+            File file = new File(book.getImagePath());
+            Log.d("파일경로", file.getPath());
+            //File file = new File(mBook.getImage_path());
+            Glide.with(holder.book_image.getContext())
+                    .load(file)
+                    .into(holder.book_image);
+        }
 /*        Glide.with(holder.book_image.getContext())
                 .load(book.getImage())
                 .diskCacheStrategy(DiskCacheStrategy.RESULT)
@@ -87,25 +111,32 @@ public class BookAdapter extends RecyclerView.Adapter<BookAdapter.BookViewHolder
     class BookViewHolder extends RecyclerView.ViewHolder {
         ImageView book_image;
         BookAdapter mAdapter;
+        FrameLayout book_container;
         Context context;
 
         public BookViewHolder(View itemView) {
             super(itemView);
             book_image = (ImageView) itemView.findViewById(R.id.book_image);
+            book_container = (FrameLayout) itemView.findViewById(R.id.book_container);
 
             itemView.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
                     Book book = bookList.get(getAdapterPosition());
-                    //BusProvider.getInstance().post(bookList.get(getAdapterPosition()));
-                    Intent detail = new Intent(context, BookDetailActivity.class);
-                    detail.putExtra("id", book.getId());
-                    detail.putExtra("readState", book.getReadState());
-                    detail.putExtra("title", book.getTitle());
-                    detail.putExtra("author", book.getAuthor());
-                    detail.putExtra("dedatil", makeBookDescription(book));
-                    detail.putExtra("image", book.getImagePath());
-                    context.startActivity(detail);
+                    if (book.getType() == 1) {
+                        //BusProvider.getInstance().post(bookList.get(getAdapterPosition()));
+                        Intent detail = new Intent(context, BookDetailActivity.class);
+                        detail.putExtra("id", book.getId());
+                        detail.putExtra("readState", book.getReadState());
+                        detail.putExtra("title", book.getTitle());
+                        detail.putExtra("author", book.getAuthor());
+                        detail.putExtra("dedatil", makeBookDescription(book));
+                        detail.putExtra("image", book.getImagePath());
+                        context.startActivity(detail);
+                    } else {
+                        Intent pagerIntent = new Intent(context, PagerActivity.class);
+                        context.startActivity(pagerIntent);
+                    }
                 }
             });
 
@@ -142,7 +173,7 @@ public class BookAdapter extends RecyclerView.Adapter<BookAdapter.BookViewHolder
     }
 
     private String makeBookDescription(Book book) {
-        return book.getPublisher() + " / " + book.getPubdateWithDot().replace("-",". ");
+        return book.getPublisher() + " / " + book.getPubdateWithDot().replace("-", ". ");
         //return book.getPublisher() + " / " + book.getPubdate().replace("-",". ");
     }
 

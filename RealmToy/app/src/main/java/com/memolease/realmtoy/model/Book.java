@@ -26,6 +26,7 @@ public class Book extends RealmObject {
     private String isbn;
     private String isbn13;
     private String description;
+    int type; //0이면 빈 화면, 1이면 책이 있음
     int readState;
 
     String createAt;
@@ -215,6 +216,14 @@ public class Book extends RealmObject {
         this.createAt = createAt;
     }
 
+    public int getType() {
+        return type;
+    }
+
+    public void setType(int type) {
+        this.type = type;
+    }
+
     public void setNaverBook(NaverBook naverBook) {
         this.title = naverBook.getTitle();
         this.sub_title = naverBook.getSub_title();
@@ -229,10 +238,12 @@ public class Book extends RealmObject {
         this.isbn13 = naverBook.getIsbn13();
         this.description = naverBook.getDescription();
         this.readState = naverBook.getReadState();
+        this.type = naverBook.getType();
     }
 
     public void setBook(Book book) {
         this.id = book.getId();
+        this.type = book.getType();
         this.libraryid = book.getLibraryid();
         this.title = book.getTitle();
         this.sub_title = book.getSub_title();

@@ -152,6 +152,7 @@ public class SearchAdapter extends RecyclerView.Adapter<SearchAdapter.SearchView
                                 event.setTitle(naverBook.getTitle());
                             }
                             String[] isbnArray = event.getIsbn().split(" ");
+                            event.setType(1);
                             event.setIsbn(isbnArray[0]);
                             event.setIsbn13(isbnArray[1]);
                             event.setImage(event.getImage().replace("m1", "m5").replace("m80", "m260"));
