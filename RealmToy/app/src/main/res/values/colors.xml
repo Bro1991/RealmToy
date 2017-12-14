@@ -9,5 +9,6 @@
     <color name="white">#FFFFFF</color>
 
     <color name="actionbar_title">#777</color>
+    <color name="viewpager">#cc000000</color>
     <color name="invisible">#0000</color>
 </resources>

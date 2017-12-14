@@ -4,8 +4,13 @@ import android.support.v4.view.ViewPager;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 
+import com.eftimoff.viewpagertransformers.StackTransformer;
+import com.eftimoff.viewpagertransformers.ZoomOutSlideTransformer;
+import com.memolease.realmtoy.DepthPageTransformer;
 import com.memolease.realmtoy.FlipPageViewTransformer;
+import com.memolease.realmtoy.PageCurlPageTransformer;
 import com.memolease.realmtoy.R;
+import com.memolease.realmtoy.ZoomOutPageTransformer;
 import com.memolease.realmtoy.adapter.CustomPageAdapter;
 import com.memolease.realmtoy.model.Book;
 
@@ -30,7 +35,8 @@ public class PagerActivity extends AppCompatActivity {
         initBookRealm();
         customPageAdapter = new CustomPageAdapter(this, bookList);
         viewpager.setAdapter(customPageAdapter);
-        viewpager.setPageTransformer(false, new FlipPageViewTransformer());
+        //viewpager.setPageTransformer(true, new StackTransformer());
+        viewpager.setPageTransformer(false, new PageCurlPageTransformer());
 
     }
 
