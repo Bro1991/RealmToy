@@ -113,6 +113,7 @@ public class MainActivity extends AppCompatActivity {
         searchFile();
         searchBookcover();
         searchPhotomemo();
+        Log.d("현재 가지고 있는 책 갯수", bookList.size() + "개");
 
     }
 
@@ -306,8 +307,10 @@ public class MainActivity extends AppCompatActivity {
             if (books.size() < 10) {
                 int blank = 10 - books.size();
                 for (int i = 1; i < blank; i++) {
+//                    int j = -9;
                     Book book = new Book();
                     book.setType(0);
+                    book.setId(0);
                     bookList.add(book);
                     postion++;
                     Log.d("position값", String.valueOf(postion));

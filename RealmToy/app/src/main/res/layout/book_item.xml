@@ -21,9 +21,9 @@
         <FrameLayout
             android:id="@+id/book_container"
             android:layout_width="100dp"
-            android:layout_height="match_parent"
+            android:layout_height="wrap_content"
             android:layout_above="@+id/book_bottom_bars"
-            android:layout_marginBottom="-9dp"
+            android:layout_marginBottom="-10dp"
             android:layout_marginLeft="12dp"
             android:layout_marginRight="12dp"
             android:layout_marginTop="5dp"
@@ -36,7 +36,6 @@
                 android:layout_height="wrap_content"
                 android:layout_alignParentBottom="true"
                 android:layout_centerHorizontal="true"
-
                 android:layout_gravity="bottom"
                 android:layout_marginTop="2dp"
                 android:adjustViewBounds="true"

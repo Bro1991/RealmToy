@@ -3,16 +3,29 @@ package com.memolease.realmtoy.activity;
 import android.support.v4.view.ViewPager;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.util.Log;
+import android.view.View;
+import android.widget.Button;
+import android.widget.FrameLayout;
+import android.widget.LinearLayout;
+import android.widget.Toast;
 
 import com.eftimoff.viewpagertransformers.StackTransformer;
 import com.eftimoff.viewpagertransformers.ZoomOutSlideTransformer;
+import com.memolease.realmtoy.CustomViewPager;
 import com.memolease.realmtoy.DepthPageTransformer;
 import com.memolease.realmtoy.FlipPageViewTransformer;
+import com.memolease.realmtoy.HunderedDepthPageTransformer;
 import com.memolease.realmtoy.PageCurlPageTransformer;
 import com.memolease.realmtoy.R;
 import com.memolease.realmtoy.ZoomOutPageTransformer;
 import com.memolease.realmtoy.adapter.CustomPageAdapter;
+import com.memolease.realmtoy.event.MenuOpenEvent;
+import com.memolease.realmtoy.event.ViewPagerButtonEvent;
 import com.memolease.realmtoy.model.Book;
+import com.memolease.realmtoy.util.BusProvider;
+import com.squareup.otto.Bus;
+import com.squareup.otto.Subscribe;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -22,23 +35,93 @@ import io.realm.RealmResults;
 
 public class PagerActivity extends AppCompatActivity {
     List<Book> bookList = new ArrayList<>();
-    ViewPager viewpager;
+    //ViewPager viewpager;
+    CustomViewPager viewPager;
     CustomPageAdapter customPageAdapter;
     private Realm realm;
+    LinearLayout menu_container;
+    Bus mBus = BusProvider.getInstance();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_pager);
         realm = Realm.getDefaultInstance();
-        viewpager = (ViewPager)findViewById(R.id.viewpager);
+        mBus.register(this);
+        viewPager = (CustomViewPager) findViewById(R.id.viewpager);
+        viewPager.setPagingEnabled(true);
         initBookRealm();
+        //initUi();
         customPageAdapter = new CustomPageAdapter(this, bookList);
-        viewpager.setAdapter(customPageAdapter);
-        //viewpager.setPageTransformer(true, new StackTransformer());
-        viewpager.setPageTransformer(false, new PageCurlPageTransformer());
+        viewPager.setAdapter(customPageAdapter);
+        //viewPager.setPageTransformer(false, new DepthPageTransformer(this));
+        viewPager.setPageTransformer(false, new HunderedDepthPageTransformer(this));
+        //viewPager.setPageTransformer(true, new StackTransformer());
+        //viewPager.setPageTransformer(false, new PageCurlPageTransformer());
 
     }
+
+/*    private void initUi() {
+        menu_container = (LinearLayout) findViewById(R.id.menu_container);
+        button1 = (Button) findViewById(R.id.button1);
+        button2 = (Button) findViewById(R.id.button2);
+        button3 = (Button) findViewById(R.id.button3);
+        viewpager.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (menu == false) {
+                    menu = true;
+                    menu_container.setVisibility(View.VISIBLE);
+                } else {
+                    menu = false;
+                    menu_container.setVisibility(View.INVISIBLE);
+                }
+            }
+        });
+
+        menu_container.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (menu == false) {
+                    menu = true;
+                    menu_container.setVisibility(View.VISIBLE);
+                } else {
+                    menu = false;
+                    menu_container.setVisibility(View.INVISIBLE);
+                }
+            }
+        });
+        button1.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                menu = false;
+                menu_container.setVisibility(View.INVISIBLE);
+                int position = viewpager.getCurrentItem();
+                Log.d("눌린버튼", position +" 번째 버튼이 눌렸습니다");
+
+                Toast.makeText(PagerActivity.this, position +" 번째 버튼이 눌렸습니다", Toast.LENGTH_SHORT).show();
+            }
+        });
+        button2.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                menu = false;
+                menu_container.setVisibility(View.INVISIBLE);
+                Log.d("눌린버튼", " 두번째 버튼이 눌렸습니다");
+                Toast.makeText(PagerActivity.this, "두번째 버튼이 눌렸습니다", Toast.LENGTH_SHORT).show();
+            }
+        });
+        button3.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                menu = false;
+                menu_container.setVisibility(View.INVISIBLE);
+                Log.d("눌린버튼", " 세번째 버튼이 눌렸습니다");
+                Toast.makeText(PagerActivity.this, "세번째 버튼이 눌렸습니다", Toast.LENGTH_SHORT).show();
+            }
+        });
+    }*/
+
 
     private void initBookRealm() {
         int id = 1;
@@ -59,10 +142,23 @@ public class PagerActivity extends AppCompatActivity {
         }
     }
 
+    @Subscribe
+    public void menuOpen(MenuOpenEvent menuOpenEvent) {
+        Log.d("받았니", "메뉴버튼 받았다");
+            viewPager.setPagingEnabled(menuOpenEvent.isOpen());
+    }
+
+    @Subscribe
+    public void viewPagerButtonClick(ViewPagerButtonEvent viewPagerButtonEvent) {
+        Log.d("받았니", "버튼이벤트 받았다");
+        viewPager.setPagingEnabled(true);
+    }
+
     @Override
     protected void onDestroy() {
         super.onDestroy();
         realm.close();
+        mBus.unregister(this);
     }
 
 }

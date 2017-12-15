@@ -151,10 +151,19 @@ public class SearchAdapter extends RecyclerView.Adapter<SearchAdapter.SearchView
                             } else {
                                 event.setTitle(naverBook.getTitle());
                             }
-                            String[] isbnArray = event.getIsbn().split(" ");
+                            String[] isbnArray = naverBook.getIsbn().split(" ");
+
                             event.setType(1);
-                            event.setIsbn(isbnArray[0]);
-                            event.setIsbn13(isbnArray[1]);
+                            if (isbnArray.length > 1) {
+                                event.setIsbn(isbnArray[0]);
+                                event.setIsbn13(isbnArray[1]);
+                            } else {
+                                if (naverBook.getIsbn().length() == 10) {
+                                    event.setIsbn(naverBook.getIsbn());
+                                } else {
+                                    event.setIsbn13(naverBook.getIsbn());
+                                }
+                            }
                             event.setImage(event.getImage().replace("m1", "m5").replace("m80", "m260"));
                             event.setTitle((Jsoup.parse(naverBook.getTitle()).text()));
                             event.setAuthor(Jsoup.parse(naverBook.getAuthor()).text().replace("|", ", "));

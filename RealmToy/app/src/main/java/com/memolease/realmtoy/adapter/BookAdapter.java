@@ -119,7 +119,7 @@ public class BookAdapter extends RecyclerView.Adapter<BookAdapter.BookViewHolder
             book_image = (ImageView) itemView.findViewById(R.id.book_image);
             book_container = (FrameLayout) itemView.findViewById(R.id.book_container);
 
-            itemView.setOnClickListener(new View.OnClickListener() {
+            book_image.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
                     Book book = bookList.get(getAdapterPosition());
@@ -140,14 +140,16 @@ public class BookAdapter extends RecyclerView.Adapter<BookAdapter.BookViewHolder
                 }
             });
 
-            itemView.setOnLongClickListener(new View.OnLongClickListener() {
+            book_image.setOnLongClickListener(new View.OnLongClickListener() {
                 @Override
                 public boolean onLongClick(View v) {
-                    Book naverBook = bookList.get(getAdapterPosition());
+/*                    Book naverBook = bookList.get(getAdapterPosition());
                     removeSelectedItem(naverBook.getId());
                     DeleteBookEvent bookEvent = new DeleteBookEvent();
                     bookEvent.setId(naverBook.getId());
-                    BusProvider.getInstance().post(bookEvent);
+                    BusProvider.getInstance().post(bookEvent);*/
+                    Intent pagerIntent = new Intent(context, PagerActivity.class);
+                    context.startActivity(pagerIntent);
                     return false;
                 }
             });
