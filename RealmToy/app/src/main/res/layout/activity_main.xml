@@ -4,28 +4,28 @@
     android:id="@+id/drawer_layout"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:background="@color/main_bg"
     tools:context="com.memolease.realmtoy.activity.MainActivity">
 
     <RelativeLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent">
-        
-        <android.support.v7.widget.Toolbar
-            android:id="@+id/toolbar"
+
+        <include
+            layout="@layout/book_toolbar"
             android:layout_width="match_parent"
             android:layout_height="?attr/actionBarSize"
-            android:background="@color/colorPrimary"
-            ></android.support.v7.widget.Toolbar>
+            android:layout_alignParentLeft="true"
+            android:layout_alignParentStart="true"
+            android:layout_alignParentTop="true" />
 
         <android.support.v7.widget.RecyclerView
             android:id="@+id/book_recycler"
-            android:layout_below="@+id/toolbar"
-            android:clipToPadding="false"
-            android:paddingTop="3dp"
             android:layout_width="match_parent"
-            android:layout_height="match_parent">
-        </android.support.v7.widget.RecyclerView>
-
+            android:layout_height="match_parent"
+            android:layout_below="@+id/book_toolbar"
+            android:clipToPadding="false"
+            android:paddingTop="3dp"></android.support.v7.widget.RecyclerView>
     </RelativeLayout>
 
     <se.emilsjolander.stickylistheaders.StickyListHeadersListView
@@ -33,17 +33,17 @@
         android:layout_width="240dp"
         android:layout_height="match_parent"
         android:layout_gravity="start"
+        android:background="#B2000000"
         android:choiceMode="singleChoice"
-        android:fitsSystemWindows="true"
         android:divider="@android:color/transparent"
         android:dividerHeight="0dp"
-        android:background="#B2000000"/>
+        android:fitsSystemWindows="true" />
 
-<!--    <include
-        layout="@layout/activity_draw_layout"
-        android:layout_width="wrap_content"
-        android:layout_height="match_parent"
-        />-->
+    <!--    <include
+            layout="@layout/activity_draw_layout"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            />-->
 
 
 </android.support.v4.widget.DrawerLayout>

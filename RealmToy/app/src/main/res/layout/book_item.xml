@@ -109,7 +109,6 @@
                 android:layout_width="fill_parent"
                 android:layout_height="10dp"
                 android:layout_alignParentTop="true"
-
                 android:layout_marginTop="10dp"
                 android:background="#ffffff">
 

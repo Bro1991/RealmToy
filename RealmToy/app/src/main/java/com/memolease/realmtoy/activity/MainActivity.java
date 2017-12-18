@@ -4,6 +4,7 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.AsyncTask;
+import android.os.Build;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBar;
@@ -227,19 +228,25 @@ public class MainActivity extends AppCompatActivity {
         //libraryAdapter = new LibraryAdapter(this, libraryList, realm);
         libraryAdapter = new LibraryAdapter(this, realm);
         mLibraryListView.setAdapter(libraryAdapter);
-        //initToolbar();
-        toolbar = (Toolbar) findViewById(R.id.toolbar);
+        initToolbar();
+/*        toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
         getSupportActionBar().setDisplayShowTitleEnabled(true);
         getSupportActionBar().setDisplayShowCustomEnabled(true); //커스터마이징 하기 위해 필요
-        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+        getSupportActionBar().setDisplayHomeAsUpEnabled(true);*/
         mDrawerToggle.setDrawerIndicatorEnabled(true);
         mDrawerLayout.setDrawerLockMode(DrawerLayout.LOCK_MODE_UNLOCKED);
     }
 
     private void initToolbar() {
-        toolbar = (Toolbar) findViewById(R.id.toolbar);
+        toolbar = (Toolbar) findViewById(R.id.book_toolbar);
         setSupportActionBar(toolbar);
+
+/*
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP)
+            getWindow().getDecorView().setSystemUiVisibility(View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN | View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION);
+*/
+
         getSupportActionBar().setDisplayShowTitleEnabled(false);
         getSupportActionBar().setDisplayShowCustomEnabled(true); //커스터마이징 하기 위해 필요
         //getSupportActionBar().setDisplayHomeAsUpEnabled(false); // 뒤로가기 버튼, 디폴트로 true만 해도 백버튼이 생김
@@ -269,6 +276,7 @@ public class MainActivity extends AppCompatActivity {
         bookAdapter = new BookAdapter(bookList);
         bookAdapter.mContext = this;
         book_recycler.setAdapter(bookAdapter);
+        book_recycler.setHasFixedSize(true);
     }
 
     private void initBookRealm() {
@@ -307,10 +315,10 @@ public class MainActivity extends AppCompatActivity {
             if (books.size() < 10) {
                 int blank = 10 - books.size();
                 for (int i = 1; i < blank; i++) {
-//                    int j = -9;
+                    int j = -9 + i;
                     Book book = new Book();
                     book.setType(0);
-                    book.setId(0);
+                    book.setId(j);
                     bookList.add(book);
                     postion++;
                     Log.d("position값", String.valueOf(postion));
@@ -321,9 +329,10 @@ public class MainActivity extends AppCompatActivity {
         } else if (books.size() == 0) {
             //int blank = 10 - books.size();
             for (int i = 1; i < 10; i++) {
+                int j = -9 + i;
                 Book book = new Book();
                 book.setType(0);
-                book.setId(0);
+                book.setId(j);
                 bookList.add(book);
                 postion++;
                 Log.d("position값", String.valueOf(postion));

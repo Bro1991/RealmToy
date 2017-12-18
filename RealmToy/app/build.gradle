@@ -53,5 +53,6 @@ dependencies {
     compile 'com.github.chrisbanes:PhotoView:2.0.0'
     compile 'app.num.numandroidpagecurleffect:numandroidpagecurleffect:1.0'
     compile 'com.eftimoff:android-viewpager-transformers:1.0.1@aar'
+    compile 'dyanamitechetan.vusikview:vusikview:1.1'
 
 }

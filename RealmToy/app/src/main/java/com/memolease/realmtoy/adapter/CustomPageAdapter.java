@@ -22,6 +22,8 @@ import com.memolease.realmtoy.util.BusProvider;
 import java.io.File;
 import java.util.List;
 
+import dyanamitechetan.vusikview.VusikView;
+
 /**
  * Created by bro on 2017-12-14.
  */
@@ -53,6 +55,12 @@ public class CustomPageAdapter extends PagerAdapter {
     public Object instantiateItem(ViewGroup container, int position) {
         View itemView = this.layoutInflater.inflate(R.layout.book_blank_item, container, false);
         final LinearLayout menu_container = (LinearLayout) itemView.findViewById(R.id.menu_container);
+        VusikView vusikView = (VusikView) itemView.findViewById(R.id.vusikView);
+        int[] myImageList = new int[]{R.drawable.snow_item};
+        vusikView.setImages(myImageList)
+                .start();
+
+
         Button button1 = (Button) itemView.findViewById(R.id.button1);
         Button button2 = (Button) itemView.findViewById(R.id.button2);
         Button button3 = (Button) itemView.findViewById(R.id.button3);
