@@ -256,7 +256,6 @@ public class MainActivity extends AppCompatActivity {
     private void initRecycler() {
         book_recycler = (RecyclerView) findViewById(R.id.book_recycler);
         mLayoutManager = new GridLayoutManager(this, 3);
-
         mLayoutManager.setSpanSizeLookup(new GridLayoutManager.SpanSizeLookup() {
             @Override
             public int getSpanSize(int position) {

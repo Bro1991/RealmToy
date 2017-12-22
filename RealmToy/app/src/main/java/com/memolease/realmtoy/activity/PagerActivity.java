@@ -8,6 +8,8 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.FrameLayout;
 import android.widget.LinearLayout;
+import android.widget.SeekBar;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.eftimoff.viewpagertransformers.StackTransformer;
@@ -39,8 +41,12 @@ public class PagerActivity extends AppCompatActivity {
     CustomViewPager viewPager;
     CustomPageAdapter customPageAdapter;
     private Realm realm;
-    LinearLayout menu_container;
+    FrameLayout menu_container;
     Bus mBus = BusProvider.getInstance();
+    boolean menu = false;
+    Button button1, button2, button3;
+    TextView seekbar_title;
+    SeekBar seek_bar;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -51,7 +57,7 @@ public class PagerActivity extends AppCompatActivity {
         viewPager = (CustomViewPager) findViewById(R.id.viewpager);
         viewPager.setPagingEnabled(true);
         initBookRealm();
-        //initUi();
+        initUi();
         customPageAdapter = new CustomPageAdapter(this, bookList);
         viewPager.setAdapter(customPageAdapter);
         //viewPager.setPageTransformer(false, new DepthPageTransformer(this));
@@ -61,12 +67,15 @@ public class PagerActivity extends AppCompatActivity {
 
     }
 
-/*    private void initUi() {
-        menu_container = (LinearLayout) findViewById(R.id.menu_container);
+    private void initUi() {
+        seek_bar = (SeekBar) findViewById(R.id.seek_bar);
+        seek_bar.setMax(bookList.size() -1);
+        menu_container = (FrameLayout) findViewById(R.id.menu_container);
+        seekbar_title = (TextView) findViewById(R.id.seekbar_title);
         button1 = (Button) findViewById(R.id.button1);
         button2 = (Button) findViewById(R.id.button2);
         button3 = (Button) findViewById(R.id.button3);
-        viewpager.setOnClickListener(new View.OnClickListener() {
+/*        viewPager.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 if (menu == false) {
@@ -77,17 +86,17 @@ public class PagerActivity extends AppCompatActivity {
                     menu_container.setVisibility(View.INVISIBLE);
                 }
             }
-        });
+        });*/
 
         menu_container.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 if (menu == false) {
-                    menu = true;
                     menu_container.setVisibility(View.VISIBLE);
+                    menu = true;
                 } else {
-                    menu = false;
                     menu_container.setVisibility(View.INVISIBLE);
+                    menu = false;
                 }
             }
         });
@@ -96,10 +105,10 @@ public class PagerActivity extends AppCompatActivity {
             public void onClick(View v) {
                 menu = false;
                 menu_container.setVisibility(View.INVISIBLE);
-                int position = viewpager.getCurrentItem();
-                Log.d("눌린버튼", position +" 번째 버튼이 눌렸습니다");
+                int position = viewPager.getCurrentItem();
+                Log.d("눌린버튼", position + " 번째 버튼이 눌렸습니다");
 
-                Toast.makeText(PagerActivity.this, position +" 번째 버튼이 눌렸습니다", Toast.LENGTH_SHORT).show();
+                Toast.makeText(PagerActivity.this, position + " 번째 버튼이 눌렸습니다", Toast.LENGTH_SHORT).show();
             }
         });
         button2.setOnClickListener(new View.OnClickListener() {
@@ -120,7 +129,26 @@ public class PagerActivity extends AppCompatActivity {
                 Toast.makeText(PagerActivity.this, "세번째 버튼이 눌렸습니다", Toast.LENGTH_SHORT).show();
             }
         });
-    }*/
+
+        seek_bar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+            @Override
+            public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
+                viewPager.setCurrentItem(seekBar.getProgress());
+                seekbar_title.setText(bookList.get(progress).getTitle());
+
+            }
+
+            @Override
+            public void onStartTrackingTouch(SeekBar seekBar) {
+
+            }
+
+            @Override
+            public void onStopTrackingTouch(SeekBar seekBar) {
+
+            }
+        });
+    }
 
 
     private void initBookRealm() {
@@ -145,7 +173,26 @@ public class PagerActivity extends AppCompatActivity {
     @Subscribe
     public void menuOpen(MenuOpenEvent menuOpenEvent) {
         Log.d("받았니", "메뉴버튼 받았다");
-            viewPager.setPagingEnabled(menuOpenEvent.isOpen());
+        /*viewPager.setPagingEnabled(menuOpenEvent.isOpen());
+        //menu = menuOpenEvent.isOpen();
+        if (menuOpenEvent.isOpen() == false) {
+            menu_container.setVisibility(View.VISIBLE);
+            menu = true;
+        } else {
+            menu_container.setVisibility(View.INVISIBLE);
+            menu = false;
+        }*/
+        if (menu == false) {
+            viewPager.setPagingEnabled(true);
+            menu_container.setVisibility(View.VISIBLE);
+            menu = true;
+        }else {
+            viewPager.setPagingEnabled(false);
+
+            menu_container.setVisibility(View.INVISIBLE);
+            menu = false;
+        }
+
     }
 
     @Subscribe

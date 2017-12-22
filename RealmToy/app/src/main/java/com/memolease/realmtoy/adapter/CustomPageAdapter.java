@@ -84,14 +84,14 @@ public class CustomPageAdapter extends PagerAdapter {
                     menuOpenEvent.setOpen(menu);
                     BusProvider.getInstance().post(menuOpenEvent);
                     menu = true;
-                    menu_container.setVisibility(View.VISIBLE);
+                    //menu_container.setVisibility(View.VISIBLE);
                 } else {
                     Log.d("보냈니", menu + "메뉴버튼 보냈다");
                     MenuOpenEvent menuOpenEvent = new MenuOpenEvent();
                     menuOpenEvent.setOpen(menu);
                     BusProvider.getInstance().post(menuOpenEvent);
                     menu = false;
-                    menu_container.setVisibility(View.INVISIBLE);
+                    //menu_container.setVisibility(View.INVISIBLE);
                 }
             }
         });
